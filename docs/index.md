@@ -12,10 +12,10 @@ hide:
 The comprehensive guide to Unreal Engine's Gameplay Ability System. Every class, every concept, every pattern — for all skill levels.
 </p>
 
-<div class="hero-badges">
-  <span class="hero-badge">:simple-unrealengine: UE 5.7</span>
-  <span class="hero-badge">:material-file-document-multiple: 82 Pages</span>
-  <span class="hero-badge">:material-open-source-initiative: Open Source</span>
+<div class="hero-badges" markdown>
+  <span class="hero-badge" markdown>:simple-unrealengine: UE 5.7</span>
+  <span class="hero-badge" markdown>:material-file-document-multiple: 82 Pages</span>
+  <span class="hero-badge" markdown>:material-open-source-initiative: Open Source</span>
 </div>
 
 [Get Started :material-arrow-right:](getting-started/index.md){ .md-button .md-button--primary }
