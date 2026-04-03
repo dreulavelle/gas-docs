@@ -1,0 +1,15 @@
+site_name: GAS Reference
+site_url: https://gas.spoked.dev
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - content.code.copy
