@@ -133,9 +133,9 @@
 
 /* -- Content Area ------------------------------------------------- */
 
-/* Slightly wider content for readability */
+/* Wider content area — default 61rem is too narrow for code-heavy docs */
 .md-grid {
-  max-width: 1220px;
+  max-width: 90rem; /* ~1440px vs default ~976px */
 }
 
 /* Better heading hierarchy */

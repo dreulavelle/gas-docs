@@ -13,7 +13,7 @@ The comprehensive guide to Unreal Engine's Gameplay Ability System. Every class,
 </p>
 
 <div class="hero-badges">
-  <span class="hero-badge">:material-unreal: UE 5.7</span>
+  <span class="hero-badge">:simple-unrealengine: UE 5.7</span>
   <span class="hero-badge">:material-file-document-multiple: 82 Pages</span>
   <span class="hero-badge">:material-open-source-initiative: Open Source</span>
 </div>
