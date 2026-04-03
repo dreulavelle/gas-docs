@@ -67,7 +67,7 @@ It also checks whether this ability's tags are currently **blocked** by another 
 
 ### 4. Cooldown Check
 
-`CheckCooldown` looks for any active Gameplay Effect whose granted tags match the ability's `CooldownGameplayEffectClass` tags. If such an effect is active, the ability is still on cooldown and cannot be activated.
+`CheckCooldown` looks for any active Gameplay Effect whose granted tags match the ability's cooldown tags (returned by `GetCooldownTags()`). If such an effect is active, the ability is still on cooldown and cannot be activated.
 
 See [Cooldowns and Costs](../gameplay-effects/cooldowns-and-costs.md) for the full picture on how cooldown GEs work.
 

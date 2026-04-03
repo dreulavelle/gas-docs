@@ -120,7 +120,7 @@ MyContext->DamageTypeTag = CombatTags::DamageType_Fire;
 
 // Apply effect with this context
 FGameplayEffectSpecHandle SpecHandle =
-    ASC->MakeOutgoingSpec(DamageEffectClass, Level, ContextHandle);
+    ASC->MakeOutgoingGameplayEffectSpec(DamageEffectClass, Level, ContextHandle);
 ASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
 ```
 

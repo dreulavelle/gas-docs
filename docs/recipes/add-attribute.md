@@ -113,7 +113,7 @@ void UMyAttributeSet::PostGameplayEffectExecute(
 
 - [ ] `UPROPERTY` with `ReplicatedUsing`
 - [ ] `ATTRIBUTE_ACCESSORS` macro
-- [ ] `InitAttribute()` in constructor
+- [ ] `Init{AttributeName}()` in constructor (e.g., `InitStamina(100.f)`)
 - [ ] `DOREPLIFETIME_CONDITION_NOTIFY` in `GetLifetimeReplicatedProps`
 - [ ] `OnRep_` function with `GAMEPLAYATTRIBUTE_REPNOTIFY`
 - [ ] Clamping in `PreAttributeChange` and/or `PostGameplayEffectExecute`

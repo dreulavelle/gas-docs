@@ -22,7 +22,7 @@ By the end of this page, you'll press a button, watch your character swing, see 
 
 We create the effects *first*, before the ability. This is intentional — effects are the data that defines what an ability actually *does*. The ability is just the orchestrator that decides *when* and *how* to apply them. Think of effects as the nouns and the ability as the verb.
 
-All three effects are created in the Unreal Editor as Blueprint assets. Right-click in the Content Browser, go to **Miscellaneous > Data Asset**, and choose **GameplayEffect** as the parent class. You can also right-click and search "Gameplay Effect" directly.
+All three effects are created in the Unreal Editor. Right-click in the Content Browser and go to **Blueprint Class**, then select **GameplayEffect** as the parent class. You can also right-click and search "Gameplay Effect" directly.
 
 ### GE_Cost_MeleeAttack
 

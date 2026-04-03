@@ -181,11 +181,12 @@ void UGA_Fireball::ApplyCooldown(
     const FGameplayAbilityActorInfo* ActorInfo,
     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-    UGameplayEffect* CooldownGE = GetCooldownGameplayEffect()->GetDefaultObject<UGameplayEffect>();
-    if (CooldownGE)
+    // GetCooldownGameplayEffect() returns a TSubclassOf<UGameplayEffect>
+    TSubclassOf<UGameplayEffect> CooldownGEClass = GetCooldownGameplayEffect();
+    if (CooldownGEClass)
     {
         FGameplayEffectSpecHandle SpecHandle =
-            MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
+            MakeOutgoingGameplayEffectSpec(CooldownGEClass, GetAbilityLevel());
 
         // Set the cooldown duration dynamically
         float CooldownDuration = CalculateCooldownDuration(); // Your logic
@@ -208,11 +209,12 @@ void UGA_Fireball::ApplyCost(
     const FGameplayAbilityActorInfo* ActorInfo,
     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-    UGameplayEffect* CostGE = GetCostGameplayEffect()->GetDefaultObject<UGameplayEffect>();
-    if (CostGE)
+    // GetCostGameplayEffect() returns a TSubclassOf<UGameplayEffect>
+    TSubclassOf<UGameplayEffect> CostGEClass = GetCostGameplayEffect();
+    if (CostGEClass)
     {
         FGameplayEffectSpecHandle SpecHandle =
-            MakeOutgoingGameplayEffectSpec(CostGE->GetClass(), GetAbilityLevel());
+            MakeOutgoingGameplayEffectSpec(CostGEClass, GetAbilityLevel());
 
         float ManaCost = CalculateManaCost(); // Your logic
         SpecHandle.Data->SetSetByCallerMagnitude(

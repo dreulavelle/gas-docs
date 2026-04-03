@@ -47,7 +47,7 @@ The entry point. You call this from input handling, AI, or other gameplay code:
 ```cpp
 ASC->TryActivateAbilityByClass(MyAbilityClass);
 // or
-ASC->TryActivateAbilityByTag(AbilityTag);
+ASC->TryActivateAbilitiesByTag(AbilityTag);
 ```
 
 ### CanActivateAbility

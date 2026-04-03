@@ -22,6 +22,20 @@ Quick-reference table of abbreviations used throughout GAS documentation and sou
 | **MMC** | Modifier Magnitude Calculation | `UGameplayModifierMagnitudeCalculation` — custom C++ class for computing a single modifier's magnitude |
 | **SBC** | SetByCaller | Magnitude type where the value is set on the `FGameplayEffectSpec` at runtime via a Gameplay Tag key |
 
+## Common Game/Engine Abbreviations
+
+| Abbreviation | Full Name | Description |
+|---|---|---|
+| **AoE** | Area of Effect | An ability or effect that covers a region rather than a single target |
+| **CC** | Crowd Control | Effects that restrict a character's actions (stun, root, silence) |
+| **DoT** | Damage over Time | Periodic damage applied by a duration effect (burn, poison, bleed) |
+| **HoT** | Heal over Time | Periodic healing applied by a duration effect (regeneration) |
+| **PIE** | Play In Editor | Running the game inside the Unreal Editor for testing |
+| **RPC** | Remote Procedure Call | A function call sent over the network between client and server |
+| **SFX** | Sound Effects | Audio feedback (hit sounds, ability casts, ambient effects) |
+| **UMG** | Unreal Motion Graphics | Unreal's widget/UI framework (UMG widgets, UUserWidget) |
+| **VFX** | Visual Effects | Particle systems, material effects, post-process effects |
+
 ## Related Engine Acronyms
 
 | Abbreviation | Full Name | Description |

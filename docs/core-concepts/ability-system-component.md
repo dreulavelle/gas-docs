@@ -150,10 +150,17 @@ The timing matters and is different on server vs client:
 === "ASC on Character"
 
     ```cpp
-    // Server + Client: both call it in PossessedBy / OnRep_PlayerState
+    // Server: called when a controller possesses this pawn
     void AMyCharacter::PossessedBy(AController* NewController)
     {
         Super::PossessedBy(NewController);
+        AbilitySystemComponent->InitAbilityActorInfo(this, this);
+    }
+
+    // Client: called when PlayerState is replicated
+    void AMyCharacter::OnRep_PlayerState()
+    {
+        Super::OnRep_PlayerState();
         AbilitySystemComponent->InitAbilityActorInfo(this, this);
     }
     ```

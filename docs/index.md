@@ -37,7 +37,7 @@ The comprehensive guide to GAS in Unreal Engine 5.7. Covers every class, every c
 
     ---
 
-    Battle-tested design patterns and copy-follow step-by-step recipes. Damage pipelines, buff systems, dodge rolls.
+    Battle-tested design patterns and step-by-step recipes. Damage pipelines, buff systems, dodge rolls.
 
     [:octicons-arrow-right-24: Patterns](patterns/index.md) &middot; [:octicons-arrow-right-24: Recipes](recipes/index.md)
 

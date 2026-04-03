@@ -334,7 +334,7 @@ It only handles `OnExecute` and spawns the particle/sound at the hit location fr
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Is an Actor** | No | No | Yes | Yes | Yes | No |
 | **Instanced** | No (CDO) | No (CDO) | Yes | Yes | Yes | No (CDO) |
-| **Stateful** | Technically yes | No | No | Yes | Yes | No |
+| **Stateful** | No (shared CDO) | No | No | Yes | Yes | No |
 | **Supports Latent Actions** | No | No | Yes | Yes | Yes | No |
 | **Editor VFX Config** | No | Yes | Yes | Manual | Yes | Limited |
 | **Recycled** | N/A | N/A | Yes | Yes | Yes | N/A |

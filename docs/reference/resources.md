@@ -18,8 +18,9 @@ Curated links to official documentation, community guides, video tutorials, and 
 
 | Resource | Description |
 |---|---|
-| [tranek/GASDocumentation](https://github.com/tranek/GASDocumentation) | The original comprehensive GAS guide — covers architecture, patterns, and networking in depth. Community gold standard. |
-| [Jerakin/GAS-CheatSheet](https://github.com/Jerakin/GAS-CheatSheet) | Single-page visual cheat sheet for GAS classes and their relationships |
+| [tranek/GASDocumentation](https://github.com/tranek/GASDocumentation) | The original comprehensive GAS guide -- covers architecture, patterns, and networking in depth. Community gold standard. |
+| [Jerakin/GAS-CheatSheet](https://github.com/Jerakin/GAS-CheatSheet) | Compact cheat sheet for GAS classes and their relationships |
+| [GameplayTags and FNames In-Depth](https://itsbaffled.github.io/posts/UE/GameplayTags-And-FNames-In-Depth) | Deep technical dive into FName internals, GameplayTag memory layout, replication bit-tuning, and performance characteristics. Excellent for understanding what's happening under the hood. |
 
 ## Video Tutorials
 

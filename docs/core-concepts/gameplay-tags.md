@@ -213,3 +213,81 @@ The key principles:
 - **Separate concerns** — `Ability.*` for ability identity, `State.*` for actor state, `CrowdControl.*` for CC types
 
 For the complete tag design guide with naming conventions, common hierarchies, and anti-patterns, see [Tag Architecture](../patterns/tag-design.md).
+
+### Design Anti-Patterns
+
+Watch out for "broken hierarchies" where specific and general are in the wrong order:
+
+| Pattern | Problem | Better |
+|---|---|---|
+| `Item.Apple.Heal` | Can't query "all healing items" without enumerating every item | `Item.Heal.Apple` |
+| `Ability.Fireball.Damage` | Can't query "all damage abilities" broadly | `Ability.Damage.Fireball` |
+| `Status.Poison.Nature` | Mixes the effect (poison) with the element (nature) | `Status.DoT.Poison` + `Damage.Type.Nature` |
+
+The rule: **put the thing you'll query for closest to the root**. If you'll often check "is this a healing item?", then `Heal` should be higher in the hierarchy than `Apple`.
+
+## Under the Hood: FNames and Performance
+
+!!! info "Source"
+    This section draws from [GameplayTags and FNames In-Depth](https://itsbaffled.github.io/posts/UE/GameplayTags-And-FNames-In-Depth) by itsBaffled -- an excellent deep dive into the internals.
+
+`FGameplayTag` is a thin wrapper around a single `FName` that stores the full dot-separated string (e.g., `"Weapon.AR.AK47"`). Understanding FNames helps you understand tag performance.
+
+### FName Comparison is Extremely Fast
+
+An FName is 8 bytes -- two `uint32` values (`ComparisonIndex` + `Number`). Equality comparison copies those 8 bytes into a `uint64` and does a single integer comparison. This is effectively free.
+
+**Tags inherit this performance.** Comparing two `FGameplayTag` values is an FName comparison -- two integers, not a string compare.
+
+Construction from a string is more expensive (involves hashing into the global `FNamePool`), but you typically construct tags once at startup and compare them at runtime. Copy construction (passing tags around) is trivial -- it's just copying 8 bytes.
+
+### FGameplayTagContainer Internals
+
+A container holds two arrays:
+
+- `GameplayTags` -- the actual tags you added
+- `ParentTags` -- automatically derived from the hierarchy
+
+For tag `Weapon.AR.AK47`, `ParentTags` automatically includes `Weapon` and `Weapon.AR`. This is why `HasTag("Weapon")` can match `Weapon.AR.AK47` without traversing the hierarchy at query time -- the parent tags are **pre-computed** when tags are added to the container.
+
+### Key Limitations
+
+- **65,535 tags maximum** per project
+- **FName indices are NOT stable** across engine launches -- never serialize or network raw `ComparisonIndex` values. Unreal sends FNames as full strings over the network.
+- **GameplayTags do NOT require GAS** -- they're a standalone framework usable in any UE project
+
+### Tag Replication Optimization
+
+When `FastReplication` is enabled in `DefaultGameplayTags.ini`, tags replicate via a global index instead of full strings. All clients and server must agree on the tag dictionary.
+
+Key settings for tuning replication bandwidth:
+
+| Setting | What It Controls | Default |
+|---|---|---|
+| `CommonlyReplicatedTags` | Tags in this array get lower indices, costing fewer bits on the wire | Empty |
+| `NetIndexFirstBitSegment` | Minimum bits always transmitted. Common tags cost this + 1 flag bit, uncommon tags cost more. | 16 |
+| `NumBitsForContainerSize` | Max tags per container = 2^n - 1 | 6 (= 63 tags max) |
+
+**Example:** If you have 255 tags (8 bits needed) but 95% of network traffic uses the lower 32 (5 bits), set `NetIndexFirstBitSegment` to 5. Common tags now cost 6 bits (5 + 1 flag) instead of 8.
+
+Use the console command `GameplayTags.PrintReplicationFrequencyReport` to generate statistics and ready-to-paste INI entries for your most commonly replicated tags.
+
+## Editor Tips
+
+### Filtering Tag Dropdowns
+
+Use the `Categories` meta specifier on `UPROPERTY` to filter the tag picker dropdown in the editor:
+
+```cpp
+// Only shows tags under Weapon.AR and Weapon.SMG
+UPROPERTY(EditDefaultsOnly, meta=(Categories="Weapon.AR,Weapon.SMG"))
+FGameplayTag WeaponTag;
+```
+
+This is invaluable on large projects where the full tag list is overwhelming. Designers only see the tags relevant to their property.
+
+## Further Reading
+
+- [Tag Architecture](../patterns/tag-design.md) -- the complete tag design guide with the 21-namespace starter preset
+- [GameplayTags and FNames In-Depth](https://itsbaffled.github.io/posts/UE/GameplayTags-And-FNames-In-Depth) -- deep dive into internals and replication
+- [Replication Modes](../networking/replication-modes.md) -- how tag replication interacts with ASC replication modes

@@ -208,7 +208,7 @@ But an Instant AddBase +50:
 
 ## Stacking and Modifiers
 
-When an effect stacks (see [Stacking](stacking.md)), the modifier magnitude can optionally be multiplied by the stack count. This is controlled by the `bFactorInStackCount` property on `UGameplayEffect`.
+When an effect stacks (see [Stacking](stacking.md)), the modifier magnitude can optionally be multiplied by the stack count. This is controlled by the `bFactorInStackCount` property on each `FGameplayModifierInfo` (per modifier, not per effect).
 
 ## What's Next?
 
