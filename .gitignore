@@ -1,3 +1,6 @@
 site/
 __pycache__/
 .venv/
+
+# Built at deploy time from docs/starter-pack/
+docs/gas-starter-pack.zip
