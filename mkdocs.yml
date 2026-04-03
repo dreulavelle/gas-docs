@@ -1,15 +1,178 @@
-site_name: GAS Reference
+site_name: Gameplay Ability System Reference
 site_url: https://gas.spoked.dev
+site_description: The comprehensive guide to Unreal Engine's Gameplay Ability System. Covers every class, every concept, every pattern — for all skill levels.
 
 theme:
   name: material
   palette:
-    scheme: slate
-    primary: indigo
-    accent: blue
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
     - navigation.instant
+    - navigation.instant.progress
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
     - search.suggest
+    - search.highlight
     - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+    - getting-started/index.md
+    - What Is GAS?: getting-started/what-is-gas.md
+    - The Mental Model: getting-started/mental-model.md
+    - Project Setup: getting-started/project-setup.md
+    - Your First Ability: getting-started/your-first-ability.md
+    - Should It Be an Ability?: getting-started/should-it-be-an-ability.md
+
+  - Core Concepts:
+    - core-concepts/index.md
+    - Ability System Component: core-concepts/ability-system-component.md
+    - Gameplay Tags: core-concepts/gameplay-tags.md
+    - Attributes and Attribute Sets: core-concepts/attributes-and-attribute-sets.md
+    - Gameplay Effects Overview: core-concepts/gameplay-effects-overview.md
+    - Gameplay Abilities Overview: core-concepts/gameplay-abilities-overview.md
+    - Gameplay Cues Overview: core-concepts/gameplay-cues-overview.md
+
+  - Deep Dives:
+    - Gameplay Effects:
+      - gameplay-effects/index.md
+      - Duration and Lifecycle: gameplay-effects/duration-and-lifecycle.md
+      - Modifiers: gameplay-effects/modifiers.md
+      - Magnitude Calculations: gameplay-effects/magnitude-calculations.md
+      - Execution Calculations: gameplay-effects/execution-calculations.md
+      - Stacking: gameplay-effects/stacking.md
+      - GE Components (5.3+): gameplay-effects/ge-components.md
+      - Tags and Requirements: gameplay-effects/tags-and-requirements.md
+      - Immunity: gameplay-effects/immunity.md
+      - Cooldowns and Costs: gameplay-effects/cooldowns-and-costs.md
+      - SetByCaller: gameplay-effects/set-by-caller.md
+      - Dynamic Effects: gameplay-effects/dynamic-effects.md
+
+    - Gameplay Abilities:
+      - gameplay-abilities/index.md
+      - Lifecycle and Activation: gameplay-abilities/lifecycle-and-activation.md
+      - Instancing Policy: gameplay-abilities/instancing-policy.md
+      - Ability Tasks: gameplay-abilities/ability-tasks.md
+      - Async Ability Tasks: gameplay-abilities/async-ability-tasks.md
+      - Input Binding: gameplay-abilities/input-binding.md
+      - Ability Sets: gameplay-abilities/ability-sets.md
+      - Targeting:
+        - gameplay-abilities/targeting/index.md
+        - Target Data: gameplay-abilities/targeting/target-data.md
+        - Target Actors: gameplay-abilities/targeting/target-actors.md
+        - Reticles and Filters: gameplay-abilities/targeting/reticles-and-filters.md
+      - Built-in Abilities: gameplay-abilities/built-in-abilities.md
+
+    - Gameplay Cues:
+      - gameplay-cues/index.md
+      - Cue Notify Types: gameplay-cues/cue-types.md
+      - Cue Parameters: gameplay-cues/cue-parameters.md
+      - Cue Manager: gameplay-cues/cue-manager.md
+      - AnimNotify and Sequencer: gameplay-cues/anim-notify-and-sequencer.md
+
+    - Networking:
+      - networking/index.md
+      - Replication Modes: networking/replication-modes.md
+      - Prediction: networking/prediction.md
+      - Net Execution Policies: networking/net-execution-policies.md
+      - Batching: networking/batching.md
+      - Replication Proxy: networking/replication-proxy.md
+
+  - Patterns & Recipes:
+    - Patterns:
+      - patterns/index.md
+      - Common Abilities: patterns/common-abilities.md
+      - Damage Pipeline: patterns/damage-pipeline.md
+      - Buff/Debuff System: patterns/buff-debuff-system.md
+      - Tag Architecture: patterns/tag-design.md
+      - C++ vs Blueprint: patterns/cpp-vs-blueprint.md
+      - Naming Conventions: patterns/naming-conventions.md
+
+    - Recipes:
+      - recipes/index.md
+      - Add an Attribute: recipes/add-attribute.md
+      - Add an Ability: recipes/add-ability.md
+      - Add a Gameplay Effect: recipes/add-gameplay-effect.md
+      - Add a Gameplay Cue: recipes/add-gameplay-cue.md
+      - Bind Ability to Input: recipes/bind-ability-to-input.md
+      - Dodge Roll Walkthrough: recipes/dodge-roll.md
+
+  - Debug & Optimize:
+    - Debugging:
+      - debugging/index.md
+      - ShowDebug AbilitySystem: debugging/showdebug-abilitysystem.md
+      - Gameplay Debugger: debugging/gameplay-debugger.md
+      - Logging: debugging/logging.md
+      - Troubleshooting: debugging/troubleshooting.md
+
+    - Optimization:
+      - optimization/index.md
+      - Replication Optimization: optimization/replication-optimization.md
+      - Cue Batching: optimization/cue-batching.md
+      - Attribute Proxy: optimization/attribute-proxy.md
+      - Lazy Loading: optimization/lazy-loading.md
+
+  - Reference:
+    - reference/index.md
+    - AbilitySystemGlobals: reference/ability-system-globals.md
+    - Ability Task Catalog: reference/ability-task-catalog.md
+    - GE Component Catalog: reference/ge-component-catalog.md
+    - Modifier Formula: reference/modifier-formula.md
+    - Scalable Floats: reference/scalable-float.md
+    - Glossary: reference/glossary.md
+    - Acronyms: reference/acronyms.md
+    - Resources: reference/resources.md

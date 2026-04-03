@@ -1,5 +1,69 @@
-# GAS Reference
+---
+hide:
+  - toc
+---
 
-Welcome to the GAS (Gameplay Ability System) reference guide.
+# Gameplay Ability System Reference
 
-[Download Starter Pack](/gas-starter-pack.zip){ .md-button .md-button--primary }
+The comprehensive guide to GAS in Unreal Engine 5.7. Covers every class, every concept, every pattern — written for all skill levels.
+
+<div class="grid cards" markdown>
+
+-   :material-rocket-launch:{ .lg .middle } **Getting Started**
+
+    ---
+
+    New to GAS? Start here. Learn the mental model, set up your project, and build your first ability end-to-end.
+
+    [:octicons-arrow-right-24: Start learning](getting-started/index.md)
+
+-   :material-book-open-variant:{ .lg .middle } **Core Concepts**
+
+    ---
+
+    The six pieces of GAS: ASC, Tags, Attributes, Effects, Abilities, and Cues. Understand each one and how they connect.
+
+    [:octicons-arrow-right-24: Core concepts](core-concepts/index.md)
+
+-   :material-layers-triple:{ .lg .middle } **Deep Dives**
+
+    ---
+
+    Go deep on Gameplay Effects, Abilities, Cues, and Networking. Every property, every pattern, every edge case.
+
+    [:octicons-arrow-right-24: Effects](gameplay-effects/index.md) &middot; [:octicons-arrow-right-24: Abilities](gameplay-abilities/index.md) &middot; [:octicons-arrow-right-24: Cues](gameplay-cues/index.md) &middot; [:octicons-arrow-right-24: Networking](networking/index.md)
+
+-   :material-hammer-wrench:{ .lg .middle } **Patterns & Recipes**
+
+    ---
+
+    Battle-tested design patterns and copy-follow step-by-step recipes. Damage pipelines, buff systems, dodge rolls.
+
+    [:octicons-arrow-right-24: Patterns](patterns/index.md) &middot; [:octicons-arrow-right-24: Recipes](recipes/index.md)
+
+-   :material-bug:{ .lg .middle } **Debug & Optimize**
+
+    ---
+
+    When things go wrong: debugging tools, troubleshooting, and performance optimization for shipping.
+
+    [:octicons-arrow-right-24: Debugging](debugging/index.md) &middot; [:octicons-arrow-right-24: Optimization](optimization/index.md)
+
+-   :material-format-list-bulleted:{ .lg .middle } **Reference**
+
+    ---
+
+    Catalogs, formulas, and glossaries. Every Ability Task, every GE Component, the modifier formula, and more.
+
+    [:octicons-arrow-right-24: Reference](reference/index.md)
+
+</div>
+
+---
+
+[Download Starter Pack :material-download:](/gas-starter-pack.zip){ .md-button .md-button--primary }
+&nbsp;&nbsp;
+[:material-github: Source](https://github.com/dreulavelle/gas-docs){ .md-button }
+
+!!! info "About this guide"
+    This is a community-maintained reference built from the official UE documentation, the engine source code (5.7), the [tranek/GASDocumentation](https://github.com/tranek/GASDocumentation) community guide, and hands-on experience. It is not affiliated with Epic Games.
