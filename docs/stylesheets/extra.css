@@ -1,0 +1,294 @@
+/* =================================================================
+   GAS Bible — Custom Theme
+   UE-inspired dark blue palette with warm orange accents
+   ================================================================= */
+
+/* -- Custom Primary Color ----------------------------------------- */
+
+/* Dark mode (slate) */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #1a2332;
+  --md-primary-fg-color--light: #253346;
+  --md-primary-fg-color--dark: #0f1720;
+  --md-hue: 215;
+
+  /* Slightly warmer background */
+  --md-default-bg-color: #0d1117;
+  --md-default-bg-color--light: #161b22;
+
+  /* Accent tweaks */
+  --md-accent-fg-color: #ff9800;
+  --md-typeset-a-color: #58a6ff;
+}
+
+/* Light mode */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #1a2332;
+  --md-primary-fg-color--light: #253346;
+  --md-primary-fg-color--dark: #0f1720;
+
+  --md-accent-fg-color: #e65100;
+}
+
+/* -- Header & Navigation ------------------------------------------ */
+
+.md-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Make the logo/site name more prominent */
+.md-header__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Tab styling */
+.md-tabs {
+  background: var(--md-primary-fg-color--dark);
+}
+
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  opacity: 1;
+}
+
+/* -- Home Page Hero ----------------------------------------------- */
+
+.md-typeset .hero-section {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset .hero-section h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #58a6ff 0%, #ff9800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.md-typeset .hero-section .hero-tagline {
+  font-size: 1.15rem;
+  color: var(--md-default-fg-color--light);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+
+.md-typeset .hero-section .hero-badges {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset .hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+[data-md-color-scheme="slate"] .hero-badge {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-md-color-scheme="default"] .hero-badge {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* -- Grid Cards (Home Page) --------------------------------------- */
+
+/* Make cards more visually distinct */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li {
+  border-radius: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid.cards > ol > li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > ul > li:hover,
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > ol > li:hover {
+  border-color: var(--md-accent-fg-color);
+}
+
+/* -- Content Area ------------------------------------------------- */
+
+/* Slightly wider content for readability */
+.md-grid {
+  max-width: 1220px;
+}
+
+/* Better heading hierarchy */
+.md-typeset h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 2.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+}
+
+/* -- Code Blocks -------------------------------------------------- */
+
+/* Slightly larger code for readability */
+.md-typeset code {
+  font-size: 0.82em;
+}
+
+.md-typeset pre code {
+  font-size: 0.82em;
+}
+
+/* Better inline code styling */
+[data-md-color-scheme="slate"] .md-typeset code:not(pre code) {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Code copy button — more subtle */
+.md-clipboard {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.md-typeset pre:hover .md-clipboard {
+  opacity: 0.7;
+}
+
+/* -- Tables ------------------------------------------------------- */
+
+/* Better table styling */
+.md-typeset table:not([class]) {
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.85em;
+}
+
+.md-typeset table:not([class]) th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75em;
+  letter-spacing: 0.05em;
+}
+
+/* -- Admonitions -------------------------------------------------- */
+
+/* Slightly rounder corners */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+}
+
+/* -- Buttons ------------------------------------------------------ */
+
+/* Starter pack download button */
+.md-typeset .md-button--primary {
+  background-color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.6em 1.4em;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.md-typeset .md-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.md-typeset .md-button:not(.md-button--primary) {
+  border-radius: 8px;
+  padding: 0.6em 1.4em;
+}
+
+/* -- Sidebar ------------------------------------------------------ */
+
+/* Active nav item accent */
+.md-nav__link--active {
+  font-weight: 600;
+}
+
+/* -- Footer ------------------------------------------------------- */
+
+.md-footer {
+  margin-top: 3rem;
+}
+
+/* -- Announcement Bar --------------------------------------------- */
+
+.md-banner {
+  background: linear-gradient(90deg, #1a2332, #253346);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.md-banner a {
+  color: var(--md-accent-fg-color);
+}
+
+/* -- Responsive --------------------------------------------------- */
+
+@media screen and (max-width: 76.25em) {
+  .md-typeset .hero-section h1 {
+    font-size: 1.8rem;
+  }
+
+  .md-typeset .hero-section .hero-tagline {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 44.9375em) {
+  .md-typeset .hero-section {
+    padding: 2rem 0.5rem 1.5rem;
+  }
+
+  .md-typeset .hero-section h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* -- Mermaid Diagrams --------------------------------------------- */
+
+/* Better diagram styling in dark mode */
+[data-md-color-scheme="slate"] .mermaid {
+  --mermaid-font-family: Inter, sans-serif;
+}
+
+/* -- Print Styles ------------------------------------------------- */
+
+@media print {
+  .md-header,
+  .md-tabs,
+  .md-sidebar,
+  .md-footer {
+    display: none;
+  }
+}

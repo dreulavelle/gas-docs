@@ -1,11 +1,30 @@
 ---
 hide:
   - toc
+  - navigation
 ---
 
-# Gameplay Ability System Reference
+<div class="hero-section" markdown>
 
-The comprehensive guide to GAS in Unreal Engine 5.7. Covers every class, every concept, every pattern — written for all skill levels.
+# The GAS Bible
+
+<p class="hero-tagline">
+The comprehensive guide to Unreal Engine's Gameplay Ability System. Every class, every concept, every pattern — for all skill levels.
+</p>
+
+<div class="hero-badges">
+  <span class="hero-badge">:material-unreal: UE 5.7</span>
+  <span class="hero-badge">:material-file-document-multiple: 82 Pages</span>
+  <span class="hero-badge">:material-open-source-initiative: Open Source</span>
+</div>
+
+[Get Started :material-arrow-right:](getting-started/index.md){ .md-button .md-button--primary }
+&nbsp;&nbsp;
+[Download Starter Pack :material-download:](/gas-starter-pack.zip){ .md-button }
+
+</div>
+
+---
 
 <div class="grid cards" markdown>
 
@@ -59,11 +78,7 @@ The comprehensive guide to GAS in Unreal Engine 5.7. Covers every class, every c
 
 </div>
 
----
-
-[Download Starter Pack :material-download:](/gas-starter-pack.zip){ .md-button .md-button--primary }
-&nbsp;&nbsp;
-[:material-github: Source](https://github.com/dreulavelle/gas-docs){ .md-button }
-
 !!! info "About this guide"
     This is a community-maintained reference built from the official UE documentation, the engine source code (5.7), the [tranek/GASDocumentation](https://github.com/tranek/GASDocumentation) community guide, and hands-on experience. It is not affiliated with Epic Games.
+
+    [:material-github: Contribute on GitHub](https://github.com/dreulavelle/gas-docs){ .md-button }
