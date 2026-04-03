@@ -13,14 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install and build
-        run: |
-          pip install zensical
-          zensical build
+      - name: Install dependencies
+        run: uv pip install --system zensical
+
+      - name: Build site
+        run: zensical build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
