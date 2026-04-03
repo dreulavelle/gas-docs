@@ -23,11 +23,55 @@
 
 /* Light mode */
 [data-md-color-scheme="default"] {
-  --md-primary-fg-color: #1a2332;
-  --md-primary-fg-color--light: #253346;
-  --md-primary-fg-color--dark: #0f1720;
+  --md-primary-fg-color: #2d4a6f;
+  --md-primary-fg-color--light: #3a5d8a;
+  --md-primary-fg-color--dark: #1e3654;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #ffffffcc;
 
   --md-accent-fg-color: #e65100;
+}
+
+/*
+ * Light mode — the modern theme uses page background for the header
+ * (not primary color), so header text should use body text colors.
+ * We only need to override the TABS bar which does use primary bg.
+ */
+
+/* Tab bar uses --md-primary-fg-color--dark as background, needs white text */
+[data-md-color-scheme="default"] .md-tabs__link {
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+}
+
+[data-md-color-scheme="default"] .md-tabs__link:hover {
+  color: #ffffff;
+  opacity: 1;
+}
+
+[data-md-color-scheme="default"] .md-tabs__link--active {
+  color: #ffffff;
+  opacity: 1;
+}
+
+/* Light mode inline code */
+[data-md-color-scheme="default"] .md-typeset code:not(pre code) {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Light mode card hover — use accent border */
+[data-md-color-scheme="default"] .md-typeset .grid.cards > ul > li:hover,
+[data-md-color-scheme="default"] .md-typeset .grid.cards > ol > li:hover {
+  border-color: var(--md-accent-fg-color);
+}
+
+/* Light mode hero gradient — darker for contrast on white bg */
+[data-md-color-scheme="default"] .md-typeset .hero-section h1 {
+  background: linear-gradient(135deg, #1a5fb4 0%, #e65100 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* -- Header & Navigation ------------------------------------------ */
@@ -133,9 +177,20 @@
 
 /* -- Content Area ------------------------------------------------- */
 
-/* Wider layout — theme hardcodes 61rem, override with !important */
-.md-grid {
-  max-width: 95% !important;
+/* Wider layout for content pages — theme hardcodes 61rem on .md-grid */
+/* Only widen when sidebars are present (not on home page which hides nav) */
+.md-main .md-grid {
+  max-width: 90rem !important;
+}
+
+/* Cap the home page content so cards don't stretch edge-to-edge */
+.md-content__inner .hero-section,
+.md-content__inner .grid.cards,
+.md-content__inner > .admonition,
+.md-content__inner > hr {
+  max-width: 64rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Better heading hierarchy */
@@ -250,7 +305,11 @@
 }
 
 .md-banner a {
-  color: var(--md-accent-fg-color);
+  color: #ff9800;
+}
+
+.md-banner .md-banner__button {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* -- Responsive --------------------------------------------------- */
