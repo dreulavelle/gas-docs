@@ -133,9 +133,34 @@
 
 /* -- Content Area ------------------------------------------------- */
 
-/* Wider content area — default 61rem is too narrow for code-heavy docs */
+/* Wider content area — default is far too narrow for code-heavy docs */
 .md-grid {
-  max-width: 90rem; /* ~1440px vs default ~976px */
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Give the main content column as much room as possible */
+@media screen and (min-width: 76.25em) {
+  /* Shrink the left sidebar slightly */
+  .md-sidebar--primary {
+    width: 11rem;
+  }
+
+  /* Shrink the right TOC sidebar */
+  .md-sidebar--secondary {
+    width: 13rem;
+  }
+
+  /* Let content fill remaining space */
+  .md-content {
+    max-width: none;
+  }
+}
+
+@media screen and (min-width: 60em) and (max-width: 76.24em) {
+  .md-content {
+    max-width: none;
+  }
 }
 
 /* Better heading hierarchy */
