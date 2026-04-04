@@ -1,0 +1,89 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  validate:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv pip install --system zensical
+
+      - name: Build site
+        run: zensical build
+
+      - name: Check internal links
+        run: |
+          ERRORS=0
+          for file in $(find docs -name "*.md"); do
+            links=$(grep -oP '\]\((?!http)(?!#)(?!mailto)([^)]+\.md(?:#[^)]*)?)\)' "$file" 2>/dev/null | sed 's/\](\(.*\))/\1/' | sed 's/#.*//')
+            for link in $links; do
+              dir=$(dirname "$file")
+              target=$(realpath --relative-to=. "$dir/$link" 2>/dev/null)
+              if [ ! -f "$target" ]; then
+                echo "::error file=$file::Broken link: $link (target not found)"
+                ERRORS=$((ERRORS + 1))
+              fi
+            done
+          done
+          if [ $ERRORS -gt 0 ]; then
+            echo "Found $ERRORS broken link(s)"
+            exit 1
+          fi
+          echo "All internal links valid"
+
+      - name: Deploy preview
+        if: success()
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site --project-name=gas-reference --branch=${{ github.head_ref }}
+
+      - name: Comment preview URL
+        if: success() && steps.deploy.outputs.deployment-url
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Preview deployment')
+            );
+            const body = `### Preview deployment\n\n| Status | URL |\n|---|---|\n| :white_check_mark: Deployed | ${{ steps.deploy.outputs.deployment-url }} |\n\nBuilt from commit \`${context.sha.substring(0, 7)}\``;
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
