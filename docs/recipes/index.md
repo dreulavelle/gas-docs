@@ -1,6 +1,6 @@
 ---
 title: Recipes
-description: Step-by-step procedures for common GAS tasks — adding attributes, abilities, effects, cues, input bindings, and a full dodge roll walkthrough.
+description: Step-by-step procedures for common GAS tasks — adding attributes, abilities, effects, cues, and input bindings.
 ---
 
 # Recipes
@@ -14,4 +14,5 @@ Quick, focused, step-by-step procedures. Minimal explanation -- follow the steps
 | [Add a Gameplay Effect](add-gameplay-effect.md) | A Gameplay Effect with modifiers, tags, and requirements |
 | [Add a Gameplay Cue](add-gameplay-cue.md) | A cue notify triggered by an effect or ability |
 | [Bind Ability to Input](bind-ability-to-input.md) | Wire an Input Action to an ability via InputTag |
-| [Dodge Roll Walkthrough](dodge-roll.md) | A complete dodge roll with cost, cooldown, i-frames, and montage |
+
+Looking for complete worked examples? See the [Examples](../examples/index.md) section.
