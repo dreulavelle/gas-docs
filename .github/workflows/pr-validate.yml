@@ -1,0 +1,148 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv pip install --system zensical
+
+      - name: Build site
+        run: zensical build
+
+  links:
+    name: Link Check
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv pip install --system zensical
+
+      - name: Build site
+        run: zensical build
+
+      - name: Check internal links
+        run: |
+          echo "Checking for broken internal links..."
+          ERRORS=0
+
+          # Extract all internal markdown links from source files
+          for file in $(find docs -name "*.md"); do
+            # Find relative .md links like (../section/page.md) or (page.md)
+            links=$(grep -oP '\]\((?!http)(?!#)(?!mailto)([^)]+\.md(?:#[^)]*)?)\)' "$file" 2>/dev/null | sed 's/\](\(.*\))/\1/' | sed 's/#.*//')
+
+            for link in $links; do
+              # Resolve relative path from the file's directory
+              dir=$(dirname "$file")
+              target=$(realpath --relative-to=. "$dir/$link" 2>/dev/null)
+
+              if [ ! -f "$target" ]; then
+                echo "::error file=$file::Broken link: $link -> $target (file not found)"
+                ERRORS=$((ERRORS + 1))
+              fi
+            done
+          done
+
+          if [ $ERRORS -gt 0 ]; then
+            echo ""
+            echo "Found $ERRORS broken internal link(s)"
+            exit 1
+          else
+            echo "All internal links valid"
+          fi
+
+  preview:
+    name: Preview Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv pip install --system zensical
+
+      - name: Build site
+        run: zensical build
+
+      - name: Deploy preview to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site --project-name=gas-reference --branch=${{ github.head_ref }}
+
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Preview deployment')
+            );
+
+            const body = `### Preview deployment
+
+            | Status | URL |
+            |---|---|
+            | :white_check_mark: Deployed | ${{ steps.deploy.outputs.deployment-url }} |
+
+            Built from commit ${{ github.sha }}`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
