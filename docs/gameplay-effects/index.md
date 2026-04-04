@@ -40,6 +40,7 @@ Not sure which page answers your question? Start here.
 - **...create or modify effects at runtime in C++** — [Dynamic Effects](dynamic-effects.md)
 - **...show effect names or icons in my UI** — [UI Data](ui-data.md)
 - **...add custom logic to control when an effect applies** — [Custom Application](custom-application.md)
+- **...understand the old extension system** — [Effect Extensions](effect-extensions.md) (Legacy)
 
 ## Suggested Reading Order
 
@@ -58,6 +59,7 @@ If you are working through this for the first time, this order builds concepts p
 11. [Dynamic Effects](dynamic-effects.md) — runtime creation and modification
 12. [UI Data](ui-data.md) — showing effect names, descriptions, and icons in UI
 13. [Custom Application](custom-application.md) — custom logic controlling when effects apply
+14. [Effect Extensions](effect-extensions.md) — the legacy extension system (pre-5.3)
 
 !!! tip "Already comfortable with GAS?"
     If you have shipped a project with GAS before and just need to look something up, jump straight to whatever page interests you. Each page is designed to stand on its own.
