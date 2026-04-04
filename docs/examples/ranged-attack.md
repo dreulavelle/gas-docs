@@ -1,4 +1,5 @@
 ---
+title: Ranged Attack
 icon: material/bow-arrow
 description: Complete ranged attack ability with projectile spawning, GE spec passing for correct damage attribution, mana cost, and silence CC blocking.
 ---

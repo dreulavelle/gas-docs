@@ -116,7 +116,7 @@ Keep this dead simple — jump is a fire-and-forget action:
     4. **End Ability** -- clean up. Always call this on every path
 
 !!! info "Why EndAbility right after Jump?"
-    For a basic jump, you don't need to wait for the character to land. `ACharacter::Jump()` handles the physics — the ability's job is just to gate and trigger it. A more advanced version could use the **WaitMovementModeChange** ability task to track airborne state, grant an `State.Airborne` tag, and end the ability on landing. See the [Jump example](../examples/jump.md) for that version.
+    For a basic jump, you don't need to wait for the character to land. `ACharacter::Jump()` handles the physics -- the ability's job is just to gate and trigger it. A more advanced version could use the **WaitMovementModeChange** [ability task](../gameplay-abilities/ability-tasks.md) to track airborne state, grant a `State.Airborne` tag, and end the ability on landing.
 
 !!! danger "Always End Ability"
     Every code path must call **End Ability**. If you forget, the ability stays "active" forever — blocking re-activation, holding its slot, and leaking resources. This is the single most common GAS bug.

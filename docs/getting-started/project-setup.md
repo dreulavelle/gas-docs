@@ -294,7 +294,7 @@ We'll start with a minimal set: Health, MaxHealth, Stamina, MaxStamina, and a me
                     GetHealth() - DamageAmount, 0.f, GetMaxHealth());
                 SetHealth(NewHealth);
 
-                // TODO: Check for death (NewHealth <= 0) and broadcast a tag or event.
+                // Extension point: check for death (NewHealth <= 0) and broadcast a gameplay event or tag.
             }
         }
 

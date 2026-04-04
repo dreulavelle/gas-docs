@@ -1,4 +1,5 @@
 ---
+title: Dodge Roll
 icon: material/run-fast
 description: Complete dodge roll ability with stamina cost, cooldown, i-frames via Activation Owned Tags, root motion montage, and ability blocking.
 ---

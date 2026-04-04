@@ -1,4 +1,5 @@
 ---
+title: Melee Attack
 icon: material/sword
 description: Complete melee attack ability with montage-driven hit timing, SetByCaller damage, AnimNotify integration, stamina cost, and cooldown.
 ---

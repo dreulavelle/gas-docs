@@ -277,4 +277,4 @@ Some projects use separate activate/deactivate abilities. The activate ability g
 - [Damage Pipeline](damage-pipeline.md) -- the full damage flow
 - [Buff/Debuff System](buff-debuff-system.md) -- duration effect patterns
 - [Add an Ability](../recipes/add-ability.md) -- step-by-step ability creation
-- [Dodge Roll Walkthrough](../recipes/dodge-roll.md) -- complete worked example
+- [Dodge Roll Example](../examples/dodge-roll.md) -- complete worked example

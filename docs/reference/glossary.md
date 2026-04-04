@@ -87,7 +87,7 @@ Alphabetical definitions of GAS-specific terms. For acronym expansions, see [Acr
 :   A Gameplay Tag added to the target's owned tag set while a duration or infinite GE is active. Removed when the GE expires or is removed.
 
 **I-frames (Invulnerability Frames)**
-:   A brief window during an action (like a dodge roll) where the character cannot take damage. Typically implemented by granting `State.Invulnerable` via Activation Owned Tags, then checking for that tag in the damage pipeline. See [Dodge Roll Recipe](../recipes/dodge-roll.md).
+:   A brief window during an action (like a dodge roll) where the character cannot take damage. Typically implemented by granting `State.Invulnerable` via Activation Owned Tags, then checking for that tag in the damage pipeline. See [Dodge Roll Example](../examples/dodge-roll.md).
 
 **Inhibited Effect**
 :   An active GE whose ongoing tag requirements are not met. It remains applied but dormant -- its modifiers and granted tags are not active. Becomes active again when requirements are satisfied.

@@ -47,7 +47,6 @@ theme:
     - content.action.view
     - toc.follow
     - header.autohide
-    - announce.dismiss
 
 extra:
   social:
