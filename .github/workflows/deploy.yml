@@ -24,9 +24,6 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system zensical
 
-      - name: Build starter pack zip
-        run: cd docs/starter-pack && zip -r ../gas-starter-pack.zip . -x ".*"
-
       - name: Build site
         run: zensical build
 

@@ -7,7 +7,6 @@ edit_uri: edit/master/docs/
 
 theme:
   name: material
-  custom_dir: overrides
   favicon: assets/favicon.svg
   icon:
     repo: fontawesome/brands/github
@@ -171,6 +170,8 @@ nav:
       - Tag Architecture: patterns/tag-design.md
       - C++ vs Blueprint: patterns/cpp-vs-blueprint.md
       - Naming Conventions: patterns/naming-conventions.md
+      - Starter Tag Preset: patterns/starter-tags.md
+      - Starter Attributes: patterns/starter-attributes.md
 
     - Recipes:
       - recipes/index.md
