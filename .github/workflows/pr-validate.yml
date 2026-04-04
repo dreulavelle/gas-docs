@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   validate:
     name: Build & Validate
@@ -56,7 +59,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy site --project-name=gas-reference --branch=${{ github.head_ref }}
+          command: pages deploy site --project-name=gas-reference --branch=${{ github.head_ref }} --commit-dirty=true
 
       - name: Comment preview URL
         if: success() && steps.deploy.outputs.deployment-url
