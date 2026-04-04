@@ -23,20 +23,42 @@ CSS improvements, navigation changes, accessibility fixes — open an issue desc
 
 ## Local Development
 
+### Prerequisites
+
+- **Python 3.12+** — [python.org](https://www.python.org/downloads/)
+- **uv** (recommended) — fast Python package manager: [docs.astral.sh/uv](https://docs.astral.sh/uv/)
+  ```bash
+  # Install uv (macOS/Linux)
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  # Install uv (Windows)
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+
+### Setup
+
 ```bash
 # Clone your fork
 git clone https://github.com/YOUR_USERNAME/gas-docs.git
 cd gas-docs
 
-# Install the site generator
+# Install Zensical (the site generator)
 uv pip install zensical
+```
 
-# Serve locally (hot reload on file changes)
+### Running Locally
+
+```bash
+# Serve with hot reload — opens at http://127.0.0.1:8000
+# Changes to any .md file rebuild automatically
 zensical serve
 
-# Or just build once
+# Or just build once (output goes to site/)
 zensical build
 ```
+
+!!! tip
+    `zensical serve` watches for file changes and rebuilds automatically. Just save your markdown file and refresh the browser — no restart needed.
 
 ## Content Guidelines
 
