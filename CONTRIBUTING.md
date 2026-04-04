@@ -79,7 +79,21 @@ Follow the conventions established by existing pages:
 - **Admonitions** for tips, warnings, and important callouts
 - **"Related Pages"** section at the bottom where appropriate
 
-## Branch Naming
+## Commits and Branches
+
+### Commit Messages
+
+We use [Conventional Commits](https://www.conventionalcommits.org/). Keep them short and descriptive:
+
+```
+feat: add passive aura example
+fix: broken link to dodge-roll in glossary
+docs: expand local dev setup in CONTRIBUTING
+style: adjust Mermaid node colors for light mode
+chore: remove stale branch protection config
+```
+
+### Branch Naming
 
 | Prefix | Use for |
 |---|---|
