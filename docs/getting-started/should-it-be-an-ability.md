@@ -1,6 +1,3 @@
----
-icon: material/help-rhombus
----
 
 # Should It Be an Ability?
 

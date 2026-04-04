@@ -1,6 +1,3 @@
----
-icon: material/puzzle
----
 
 # GE Component Catalog
 

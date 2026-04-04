@@ -1,6 +1,3 @@
----
-icon: material/wrench
----
 
 # Project Setup
 

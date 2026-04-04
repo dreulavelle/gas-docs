@@ -1,6 +1,3 @@
----
-icon: material/sword-cross
----
 
 # Gameplay Abilities — The Big Picture
 

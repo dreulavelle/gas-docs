@@ -1,6 +1,3 @@
----
-icon: material/calculator-variant
----
 
 # The Modifier Aggregation Formula
 

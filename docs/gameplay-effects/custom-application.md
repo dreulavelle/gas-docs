@@ -1,6 +1,5 @@
 ---
 title: Custom Application Requirements
-icon: material/shield-check
 description: Writing native C++ logic to control when a Gameplay Effect can be applied, beyond tag-based checks.
 ---
 

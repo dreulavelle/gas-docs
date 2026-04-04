@@ -1,6 +1,3 @@
----
-icon: material/gauge
----
 
 # Attributes and Attribute Sets
 

@@ -1,6 +1,3 @@
----
-icon: material/rocket-launch
----
 
 # Getting Started
 

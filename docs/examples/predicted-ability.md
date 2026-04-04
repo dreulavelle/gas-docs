@@ -1,6 +1,5 @@
 ---
 title: "Example: Network-Predicted Ability"
-icon: material/access-point-network
 description: Melee attack with full client-side prediction, demonstrating the predict-confirm-reject cycle, FScopedPredictionWindow, and multiplayer best practices.
 ---
 

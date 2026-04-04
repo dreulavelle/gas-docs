@@ -1,6 +1,3 @@
----
-icon: material/tag-multiple
----
 
 # Gameplay Tags in GAS
 

@@ -1,6 +1,3 @@
----
-icon: material/chip
----
 
 # The Ability System Component
 

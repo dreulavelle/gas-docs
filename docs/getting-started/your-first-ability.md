@@ -1,6 +1,3 @@
----
-icon: material/arrow-up-bold
----
 
 # Your First Ability — Jump
 

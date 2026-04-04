@@ -1,6 +1,3 @@
----
-icon: material/chart-line
----
 
 # Scalable Floats and Curve Tables
 

@@ -1,6 +1,5 @@
 ---
 title: Cue Translator
-icon: material/translate
 description: How the GameplayCueTranslator remaps cue tags at runtime for dynamic VFX selection without creating separate cue assets per variant.
 ---
 

@@ -1,6 +1,5 @@
 ---
 title: "Example: Passive Aura"
-icon: material/shield-sun
 description: Passive ability that automatically heals nearby allies, demonstrating passive activation, periodic area scanning, and applying effects to other actors' ASCs.
 ---
 

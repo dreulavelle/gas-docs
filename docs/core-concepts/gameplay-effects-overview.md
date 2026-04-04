@@ -1,6 +1,3 @@
----
-icon: material/lightning-bolt
----
 
 # Gameplay Effects — The Big Picture
 

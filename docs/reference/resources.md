@@ -1,6 +1,3 @@
----
-icon: material/link-variant
----
 
 # External Resources
 

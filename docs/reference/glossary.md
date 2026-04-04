@@ -1,6 +1,3 @@
----
-icon: material/book-alphabet
----
 
 # Glossary
 

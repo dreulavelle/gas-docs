@@ -1,6 +1,5 @@
 ---
 title: Effect UI Data
-icon: material/card-text
 description: Attaching display information (names, descriptions, icons) to Gameplay Effects for UI representation.
 ---
 

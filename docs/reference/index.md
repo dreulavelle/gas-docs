@@ -1,6 +1,3 @@
----
-icon: material/bookshelf
----
 
 # Reference
 

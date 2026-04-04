@@ -1,6 +1,5 @@
 ---
 title: Testing GAS
-icon: material/test-tube
 description: Writing automated tests for GAS abilities, effects, and attributes using UE's testing framework and the built-in test utilities.
 ---
 

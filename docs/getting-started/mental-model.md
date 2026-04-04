@@ -1,6 +1,3 @@
----
-icon: material/brain
----
 
 # How to Think About GAS
 

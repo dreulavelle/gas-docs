@@ -1,6 +1,3 @@
----
-icon: material/format-list-group
----
 
 # Ability Task Catalog
 

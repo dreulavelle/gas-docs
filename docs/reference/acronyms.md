@@ -1,6 +1,3 @@
----
-icon: material/alphabetical-variant
----
 
 # Acronyms
 

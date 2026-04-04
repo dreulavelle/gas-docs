@@ -1,6 +1,5 @@
 ---
 title: Blueprint Function Library
-icon: material/puzzle
 description: Complete reference for UAbilitySystemBlueprintLibrary and UGameplayCueFunctionLibrary — every Blueprint-callable GAS function in one place.
 ---
 

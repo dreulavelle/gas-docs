@@ -130,7 +130,6 @@ nav:
       - Dynamic Effects: gameplay-effects/dynamic-effects.md
       - Effect UI Data: gameplay-effects/ui-data.md
       - Custom Application: gameplay-effects/custom-application.md
-      - Effect Extensions (Legacy): gameplay-effects/effect-extensions.md
 
     - Gameplay Abilities:
       - gameplay-abilities/index.md
