@@ -178,7 +178,13 @@ nav:
       - Add a Gameplay Effect: recipes/add-gameplay-effect.md
       - Add a Gameplay Cue: recipes/add-gameplay-cue.md
       - Bind Ability to Input: recipes/bind-ability-to-input.md
-      - Dodge Roll Walkthrough: recipes/dodge-roll.md
+
+  - Examples:
+    - examples/index.md
+    - Jump: examples/jump.md
+    - Melee Attack: examples/melee-attack.md
+    - Dodge Roll: examples/dodge-roll.md
+    - Ranged Attack: examples/ranged-attack.md
 
   - Debug & Optimize:
     - Debugging:

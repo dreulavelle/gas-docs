@@ -1,9 +1,10 @@
 ---
-title: "Recipe: Dodge Roll Walkthrough"
+title: "Example: Dodge Roll"
+icon: material/run-fast
 description: Complete walkthrough building a dodge roll ability with stamina cost, cooldown, i-frames, montage, and input.
 ---
 
-# Recipe: Dodge Roll Walkthrough
+# Example: Dodge Roll
 
 **Goal:** Build a complete dodge roll ability with:
 
