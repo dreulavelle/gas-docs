@@ -1,6 +1,3 @@
----
-icon: material/calculator-variant
----
 
 # The Modifier Aggregation Formula
 
@@ -214,3 +211,8 @@ When `bAllowGameplayModEvaluationChannels` is enabled (off by default), modifier
 Each channel independently applies the full formula above. This allows certain modifiers to be isolated from others — for example, putting a "damage reduction" step in a separate channel from "base damage modifiers."
 
 See [AbilitySystemGlobals](ability-system-globals.md) for how to enable and name channels.
+
+## Related Pages
+
+- [Modifiers](../gameplay-effects/modifiers.md) -- how modifiers are configured on Gameplay Effects and feed into this formula
+- [Execution Calculations](../gameplay-effects/execution-calculations.md) -- an alternative to modifiers for complex multi-attribute formulas

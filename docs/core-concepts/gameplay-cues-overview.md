@@ -1,6 +1,3 @@
----
-icon: material/creation
----
 
 # Gameplay Cues — The Big Picture
 

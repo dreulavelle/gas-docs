@@ -1,6 +1,3 @@
----
-icon: material/gauge
----
 
 # Attributes and Attribute Sets
 
@@ -326,3 +323,9 @@ A common question: "Should this stat be a GAS attribute or just a Blueprint vari
 - It doesn't need the modifier pipeline (it's always set directly)
 
 **Rule of thumb:** If any GAS system interacts with the value, make it an attribute. If it lives entirely outside of GAS, keep it a variable.
+
+## Related Pages
+
+- [Modifiers](../gameplay-effects/modifiers.md) -- how Gameplay Effects modify attribute values through the modifier pipeline
+- [Starter Attributes](../patterns/starter-attributes.md) -- a complete 50+ attribute schema for action RPG projects
+- [Add an Attribute](../recipes/add-attribute.md) -- step-by-step recipe for adding a new attribute to your project

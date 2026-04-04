@@ -383,3 +383,7 @@ For anyone migrating from pre-5.3 or reading older documentation:
 ## What's Next?
 
 Now that you understand the component architecture, dive into the tag-based configuration that several components use: [Tags and Requirements](tags-and-requirements.md). Or explore specific components in depth: [Immunity](immunity.md).
+
+## Related Pages
+
+- [GE Component Catalog](../reference/ge-component-catalog.md) -- complete reference for all UGameplayEffectComponent subclasses with properties and callbacks

@@ -1,6 +1,3 @@
----
-icon: material/book-open-variant
----
 
 # Core Concepts
 

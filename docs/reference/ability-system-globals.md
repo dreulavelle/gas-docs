@@ -1,6 +1,3 @@
----
-icon: material/earth
----
 
 # AbilitySystemGlobals
 
@@ -148,3 +145,9 @@ FGameplayEffectContext* UMyAbilitySystemGlobals::AllocGameplayEffectContext() co
 | `DeriveGameplayCueTagFromAssetName()` | Generates a `GameplayCue.*` tag from an asset's name |
 | `NonShipping_ApplyGlobalAbilityScaler_Rate()` | Applies the global ability scale CVar to a rate value (dev builds only) |
 | `NonShipping_ApplyGlobalAbilityScaler_Duration()` | Applies the global ability scale CVar to a duration value (dev builds only) |
+
+## Related Pages
+
+- [Project Setup](../getting-started/project-setup.md) -- where AbilitySystemGlobals configuration is typically performed
+- [Gameplay Cue Manager](../gameplay-cues/cue-manager.md) -- the cue manager singleton created during InitGlobalData
+- [Blueprint Library](blueprint-library.md) -- static helper functions that interact with the globals singleton

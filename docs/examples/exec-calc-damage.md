@@ -1,6 +1,5 @@
 ---
 title: "Example: Custom Damage Calculation"
-icon: material/calculator-variant
 description: Complete UGameplayEffectExecutionCalculation implementing a full damage formula with attribute captures, elemental resistances, crit, and armor.
 ---
 

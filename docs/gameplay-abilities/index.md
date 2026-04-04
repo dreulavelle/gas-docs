@@ -38,7 +38,7 @@ Not sure which page answers your question? Start here.
 - **...listen for GAS events from a UI widget or AI controller** — [Async Ability Tasks](async-ability-tasks.md)
 - **...bind abilities to player input (Enhanced Input)** — [Input Binding](input-binding.md)
 - **...grant a set of abilities when a character spawns or equips something** — [Ability Sets](ability-sets.md)
-- **...implement interactive targeting (aim at the ground, select actors, etc.)** — [Targeting](targeting/index.md)
+- **...implement interactive targeting (aim at the ground, select actors, etc.)** — [Targeting](targeting/index.md) (sub-pages: [Target Data](targeting/target-data.md), [Target Actors](targeting/target-actors.md), [Reticles and Filters](targeting/reticles-and-filters.md))
 - **...see what the built-in example abilities look like** — [Built-in Abilities](built-in-abilities.md)
 
 **"I have a problem with..."**

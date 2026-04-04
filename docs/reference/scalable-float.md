@@ -1,10 +1,7 @@
----
-icon: material/chart-line
----
 
 # Scalable Floats and Curve Tables
 
-`FScalableFloat` is GAS's primary mechanism for level-based scaling. It pairs a raw float value with an optional curve table reference, producing `Value * Curve[Level]` at runtime.
+`FScalableFloat` is GAS's primary mechanism for level-based scaling. It pairs a raw float value with an optional curve table reference, producing `Value * Curve[Level]` at runtime. It is one of the four [magnitude calculation](../gameplay-effects/magnitude-calculations.md) types and appears throughout [modifier](../gameplay-effects/modifiers.md) configuration.
 
 ---
 
@@ -147,3 +144,9 @@ Level 5 → 2.5 * 30 = 75
 ```
 
 This allows designers to tune individual ability magnitudes (the `Value`) independently from the overall scaling curve.
+
+## Related Pages
+
+- [Modifiers](../gameplay-effects/modifiers.md) -- where ScalableFloat is most commonly used as a modifier magnitude
+- [Magnitude Calculations](../gameplay-effects/magnitude-calculations.md) -- the four magnitude calculation policies including ScalableFloat
+- [Cooldowns and Costs](../gameplay-effects/cooldowns-and-costs.md) -- using ScalableFloat for level-scaled cooldown durations and costs

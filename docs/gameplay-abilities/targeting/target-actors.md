@@ -194,3 +194,9 @@ void ATargetActor_ConeTrace::ConfirmTargetingAndContinue()
 - Override `OnReplicatedTargetDataReceived` if you need to validate client data on the server
 - Set `bDestroyOnConfirmation = false` if the ability needs multiple rounds of targeting
 - For tick-based targeting (continuous crosshair updates), override `Tick` and update your reticle position each frame
+
+## Related Pages
+
+- [Target Data](target-data.md) -- the polymorphic payload that target actors produce on confirmation
+- [Reticles and Filters](reticles-and-filters.md) -- visual feedback actors and target validation rules used by target actors
+- [Ability Tasks](../ability-tasks.md) -- the WaitTargetData task that spawns and manages target actors

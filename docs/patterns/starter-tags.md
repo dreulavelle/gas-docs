@@ -876,3 +876,9 @@ Faction allegiance and targeting rules. Used by AI for friend/foe decisions and 
 |---|---|
 | `Team.Player` / `.Ally` / `.Enemy` / `.Neutral` | Faction identity -- granted on spawn, used by AI perception and targeting |
 | `Team.Target.*` | Targeting filter -- set on abilities to control who they can hit |
+
+## Related Pages
+
+- [Tag Design](tag-design.md) -- principles and patterns for designing your tag hierarchy
+- [Gameplay Tags](../core-concepts/gameplay-tags.md) -- core concepts behind FGameplayTag, tag containers, and tag queries
+- [Starter Attributes](starter-attributes.md) -- companion attribute schema designed to work alongside this tag preset

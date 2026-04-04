@@ -172,3 +172,9 @@ Each hit adds a stack. On the 5th hit (overflow), all stacks are cleared and `GE
 
 !!! note "No Stacking for Instant Effects"
     If you need "stacking" behavior for instant effects (like accumulating damage), you'll need to manage that state yourself — typically in an attribute or a custom gameplay effect component.
+
+## Related Pages
+
+- [Buff/Debuff System](../patterns/buff-debuff-system.md) -- stacking patterns applied to buff and debuff design
+- [Duration and Lifecycle](duration-and-lifecycle.md) -- how stacking interacts with effect duration, inhibition, and expiration
+- [Tags and Requirements](tags-and-requirements.md) -- tag-based mutual exclusion as an alternative to stacking limits

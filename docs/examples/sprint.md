@@ -1,6 +1,5 @@
 ---
 title: "Example: Sprint Toggle"
-icon: material/run
 description: Toggle ability that increases movement speed while held, drains stamina over time, and demonstrates infinite-duration effects applied and removed on activate/deactivate.
 ---
 

@@ -236,3 +236,9 @@ This pattern covers the vast majority of dynamic effect needs. Start here, and o
 
 !!! info "Dynamic Tags Are Replicated"
     Both `DynamicAssetTags` and `DynamicGrantedTags` are replicated as part of the spec. Changes made on the server will propagate to clients.
+
+## Related Pages
+
+- [SetByCaller](set-by-caller.md) -- the most common spec modification for passing runtime magnitudes
+- [Execution Calculations](execution-calculations.md) -- reading dynamic spec data inside multi-attribute formulas
+- [Gameplay Abilities Overview](../core-concepts/gameplay-abilities-overview.md) -- where MakeOutgoingGameplayEffectSpec is typically called from

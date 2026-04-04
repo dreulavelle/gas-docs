@@ -230,3 +230,9 @@ When using target actors to produce target data, the confirmation behavior is co
 | `CustomMulti` | Like Custom, but does not destroy the target actor on data production |
 
 These are set on the `WaitTargetData` [ability task](../ability-tasks.md) and control when the target actor sends its data back.
+
+## Related Pages
+
+- [Target Actors](target-actors.md) -- the world actors that produce target data via traces, overlaps, and player input
+- [Reticles and Filters](reticles-and-filters.md) -- visual feedback and validation rules applied during targeting
+- [Targeting Overview](index.md) -- how target data, target actors, and reticles fit together

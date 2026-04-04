@@ -213,3 +213,9 @@ Here is a practical setup combining Enhanced Input with tag-based routing:
 6. **Handle release** — forward release events so active abilities and tasks can respond
 
 This approach is flexible, data-driven, and cleanly separates input configuration from ability logic.
+
+## Related Pages
+
+- [Ability Sets](ability-sets.md) -- granting abilities with input tags as part of a cohesive loadout
+- [Lifecycle and Activation](lifecycle-and-activation.md) -- what happens after input triggers TryActivateAbility
+- [Bind Ability to Input](../recipes/bind-ability-to-input.md) -- step-by-step recipe for the full Enhanced Input setup

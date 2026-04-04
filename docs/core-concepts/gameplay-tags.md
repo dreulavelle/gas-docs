@@ -1,6 +1,3 @@
----
-icon: material/tag-multiple
----
 
 # Gameplay Tags in GAS
 
@@ -159,10 +156,6 @@ The `EGameplayTagEventType` controls when the delegate fires:
 - `NewOrRemoved` — fires only on transitions: tag goes from absent to present (0 to 1+) or present to absent (1+ to 0). **This is usually what you want.**
 - `AnyCountChange` — fires on every increment/decrement. Use this if you need to track stacks.
 
-### GameplayTagResponseTable
-
-For AI, there's also `UGameplayTagResponseTable` — a data asset that maps tag events to GameplayEffects. When a tag is added or removed, it can automatically apply or remove an effect. This is useful for AI state machines that respond to status effects.
-
 ## How Tags Are Registered
 
 Tags must be registered before they can be used. There are several ways:
@@ -225,6 +218,142 @@ Watch out for "broken hierarchies" where specific and general are in the wrong o
 | `Status.Poison.Nature` | Mixes the effect (poison) with the element (nature) | `Status.DoT.Poison` + `Damage.Type.Nature` |
 
 The rule: **put the thing you'll query for closest to the root**. If you'll often check "is this a healing item?", then `Heal` should be higher in the hierarchy than `Apple`.
+
+## GameplayTagResponseTable
+
+`UGameplayTagReponseTable` (yes, the typo is in the engine — "Reponse" not "Response") is a **data-driven table that automatically applies or removes Gameplay Effects in response to tag count changes**. Instead of writing code that says "when stunned, apply the stun visual effect," you define that relationship in a data asset. The table handles the rest.
+
+This is one of GAS's most underused features. It lets you decouple "what happens when a status is applied" from the code that applies the status. Every stun ability doesn't need to know about the slow effect, the visual effect, and the input blocking effect — the response table handles all of that centrally.
+
+### How It Works
+
+The table is a `UDataAsset` with an array of `FGameplayTagResponseTableEntry` entries. Each entry has two sides:
+
+- **Positive** — a tag and associated Gameplay Effects. When the net count is positive, these effects are applied.
+- **Negative** — a tag and associated Gameplay Effects. When the net count is negative, these effects are applied.
+
+The "positive" and "negative" naming is a bit misleading. Think of it as a tug-of-war: positive tags pull the count up, negative tags pull it down. The table applies the appropriate effects based on which side is "winning."
+
+```cpp
+USTRUCT()
+struct FGameplayTagResponseTableEntry
+{
+    /** Tags that count as "positive" toward the final response count.
+      * If the overall count is positive, these ResponseGameplayEffects are applied. */
+    FGameplayTagReponsePair Positive;
+
+    /** Tags that count as "negative" toward the final response count.
+      * If the overall count is negative, these ResponseGameplayEffects are applied. */
+    FGameplayTagReponsePair Negative;
+};
+```
+
+Each side (`FGameplayTagReponsePair`) contains:
+
+| Field | Type | Purpose |
+|:---|:---|:---|
+| `Tag` | `FGameplayTag` | The tag to monitor on the ASC |
+| `ResponseGameplayEffects` | `TArray<TSubclassOf<UGameplayEffect>>` | Effects to apply when this side's count "wins" |
+| `SoftCountCap` | `int32` | Maximum effective count for this side (0 = no cap) |
+
+When the tag count changes, the table recalculates the net count and applies or removes effects accordingly. If multiple stacks of the same response tag exist, the table applies multiple levels of the response effect (using `AddOrUpdate` internally).
+
+### Setting It Up
+
+**1. Create the data asset:**
+
+In the Content Browser, right-click and create a new Data Asset of type `GameplayTagReponseTable`.
+
+**2. Configure entries:**
+
+Each entry maps tag changes to effect responses. For the common "one-sided" use case (tag added = apply effect, tag removed = remove effect), you only fill in the **Positive** side:
+
+| Positive Tag | Response Effects | What Happens |
+|:---|:---|:---|
+| `CrowdControl.Hard.Stun` | `GE_StunVisual`, `GE_StunMovementBlock` | When stunned: particles + movement lock. When stun ends: both removed. |
+| `State.InCombat` | `GE_CombatRegenBlock` | Entering combat stops health regen. Leaving combat restores it. |
+| `Status.DamageOverTime.Burn` | `GE_BurnVisual` | Burning plays fire particles. When burn ends, particles stop. |
+
+For the "opposing forces" pattern, fill in both sides:
+
+| Positive Tag | Positive Effects | Negative Tag | Negative Effects |
+|:---|:---|:---|:---|
+| `Status.Haste` | `GE_SpeedBuff` | `Status.Slow` | `GE_SpeedDebuff` |
+
+In this setup, if an actor has 2 stacks of Haste and 1 stack of Slow, the net count is +1 and `GE_SpeedBuff` is applied at level 1. If Slow overtakes Haste, `GE_SpeedDebuff` kicks in instead. This is great for "buff vs debuff" mechanics.
+
+**3. Register it with the ASC:**
+
+Call `RegisterResponseForEvents` on the ASC, typically during initialization:
+
+```cpp
+void AMyCharacter::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+    {
+        if (TagResponseTable)
+        {
+            TagResponseTable->RegisterResponseForEvents(ASC);
+        }
+    }
+}
+```
+
+This binds the table to tag change events on that ASC. The table internally calls `RegisterGameplayTagEvent` for each tag it cares about and handles the apply/remove logic in its `TagResponseEvent` callback.
+
+!!! note "Register on every ASC"
+    `RegisterResponseForEvents` must be called on each ASC that should use the table. If you want all characters to respond, call it in your character base class. The table stores weak references to registered ASCs and cleans up stale entries periodically.
+
+### Practical Examples
+
+**Status effect visuals without coupling:**
+
+Instead of every stun ability manually applying `GE_StunVisual`:
+
+```
+// Response Table entry:
+Positive.Tag = CrowdControl.Hard.Stun
+Positive.ResponseGameplayEffects = [GE_StunVisual, GE_StunInputBlock]
+```
+
+Now any effect or ability that grants the `CrowdControl.Hard.Stun` tag automatically triggers the visual and input block. New stun abilities don't need to know about the visual system at all.
+
+**Combat state management:**
+
+```
+// Response Table entry:
+Positive.Tag = State.InCombat
+Positive.ResponseGameplayEffects = [GE_BlockPassiveRegen, GE_CombatMusicTrigger]
+```
+
+Entering combat automatically stops passive regen and triggers combat music. Any system that adds `State.InCombat` (proximity detection, taking damage, using an offensive ability) gets this behavior for free.
+
+**Opposing buff/debuff:**
+
+```
+// Response Table entry:
+Positive.Tag = Status.Haste
+Positive.ResponseGameplayEffects = [GE_HasteSpeedBuff]
+Negative.Tag = Status.Slow
+Negative.ResponseGameplayEffects = [GE_SlowSpeedDebuff]
+```
+
+The table automatically resolves which side is dominant based on stack counts.
+
+### The SoftCountCap
+
+`SoftCountCap` limits how high the effective count can go. If you set it to 3, then even if the tag has 10 stacks, the response table treats the count as 3 for purposes of calculating how many levels of the response effect to apply. This prevents runaway stacking — you can have 10 sources of Haste but cap the speed buff at 3 levels.
+
+Set to 0 (the default) for no cap.
+
+### Limitations
+
+- **Tag-based only** — the table reacts to tag count changes, not to specific effects. You can't say "when GE_PoisonDagger applies, do X." You say "when the Poison tag changes, do X."
+- **No fine-grained control** — you can't differentiate *why* a tag was added. Whether the stun came from a boss ability or a player ability, the response is the same.
+- **Effect responses are applied as new effects** — they go through the normal application pipeline, including tag requirements and immunity checks. This is usually what you want, but be careful of circular dependencies (response effect grants a tag that triggers another response).
+- **Weak reference cleanup** — the table periodically cleans up stale ASC references, but during that window, the internal map may hold references to destroyed components. This is handled safely via `TWeakObjectPtr` but worth knowing about.
 
 ## Under the Hood: FNames and Performance
 

@@ -113,3 +113,4 @@ In your character's initialization (BeginPlay or after ASC is ready):
 - [Lifecycle and Activation](../gameplay-abilities/lifecycle-and-activation.md) -- how abilities activate and end
 - [Bind Ability to Input](bind-ability-to-input.md) -- wiring to player input
 - [Ability Tasks](../gameplay-abilities/ability-tasks.md) -- async operations within abilities
+- [Blueprint Function Library](../reference/blueprint-library.md) -- all available Blueprint nodes for GAS

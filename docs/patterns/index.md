@@ -35,3 +35,15 @@ What must be C++, what should be C++, what works best in Blueprint, and how the 
 ### [Naming Conventions](naming-conventions.md)
 
 Prefix conventions for assets (GA\_, GE\_, GC\_), class naming (A/U prefixes), tag naming patterns, and Content Browser folder structure.
+
+### [Connecting GAS to UI](gas-to-ui.md)
+
+Connecting GAS to UI — attribute listeners, cooldown displays, buff icons, damage numbers.
+
+### [Starter Tag Preset](starter-tags.md)
+
+Starter Tag Preset — 135+ tags across 21 namespaces, ready to copy.
+
+### [Starter Attributes](starter-attributes.md)
+
+Starter Attributes — 50+ attributes with base values and C++ declarations.

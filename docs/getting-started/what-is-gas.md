@@ -1,6 +1,3 @@
----
-icon: material/help-circle-outline
----
 
 # What Is the Gameplay Ability System?
 

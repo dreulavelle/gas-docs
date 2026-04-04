@@ -440,3 +440,9 @@ ATTRIBUTE_ACCESSORS(UYourAttributeSet, ExperienceBonus)
 
 !!! note "You'll need OnRep functions too"
     Each `ReplicatedUsing` attribute needs a matching `OnRep_*` function. The pattern is always the same -- see [Project Setup](../getting-started/project-setup.md#4-the-attribute-set) for the boilerplate. Meta attributes (`PendingDamage`, `PendingHeal`, `PendingMitigationCost`) don't need OnRep functions since they're not replicated.
+
+## Related Pages
+
+- [Attributes and Attribute Sets](../core-concepts/attributes-and-attribute-sets.md) -- core concepts behind FGameplayAttributeData, the callback chain, and meta attributes
+- [Add an Attribute](../recipes/add-attribute.md) -- step-by-step recipe for adding a new attribute with replication boilerplate
+- [Starter Tags](starter-tags.md) -- companion tag preset designed to work alongside this attribute schema

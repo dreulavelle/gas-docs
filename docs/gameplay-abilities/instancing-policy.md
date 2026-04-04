@@ -5,7 +5,7 @@ description: Understanding EGameplayAbilityInstancingPolicy — NonInstanced, In
 
 # Instancing Policy
 
-Every Gameplay Ability has an **Instancing Policy** that controls how the ability object is allocated in memory when activated. This is not just a performance knob — it fundamentally determines what your ability can and cannot do. Choose wrong and you will hit confusing crashes, replication failures, or subtle state bugs.
+Every Gameplay Ability has an **Instancing Policy** that controls how the ability object is allocated in memory when activated. This is not just a performance knob — it fundamentally determines what your ability can and cannot do. Choose wrong and you will hit confusing crashes, replication failures, or subtle state bugs. The policy affects everything from how the [ability lifecycle](lifecycle-and-activation.md) works to whether you can use [ability tasks](ability-tasks.md).
 
 The policy is set via the `InstancingPolicy` property in the ability's constructor or in Blueprint defaults:
 
@@ -145,3 +145,9 @@ Use `InstancedPerExecution` only if you have a concrete need for multiple simult
         NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
     }
     ```
+
+## Related Pages
+
+- [Lifecycle and Activation](lifecycle-and-activation.md) -- how instancing policy affects the activation flow, state management, and EndAbility
+- [Ability Tasks](ability-tasks.md) -- tasks require an instanced ability and will not work with NonInstanced
+- [Ability Sets](ability-sets.md) -- where instancing policy interacts with how abilities are granted and reused

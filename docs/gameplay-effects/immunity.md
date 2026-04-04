@@ -151,3 +151,9 @@ The key distinction: **immunity lives on the target's existing effects**, while 
 
 !!! warning "Immunity Doesn't Remove Existing Effects"
     Immunity only blocks new applications. If a poison effect is already active and you then apply a poison immunity, the existing poison keeps ticking. To remove existing effects on immunity application, use `URemoveOtherGameplayEffectComponent` alongside the immunity component.
+
+## Related Pages
+
+- [Tags and Requirements](tags-and-requirements.md) -- application tag requirements and other tag-based rejection mechanisms
+- [Custom Application Requirements](custom-application.md) -- custom C++ logic for controlling when effects can apply
+- [Dodge Roll Example](../examples/dodge-roll.md) -- a practical i-frames implementation using immunity

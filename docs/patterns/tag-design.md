@@ -158,3 +158,4 @@ This ensures existing assets continue to work while you migrate.
 - [Tags and Requirements](../gameplay-effects/tags-and-requirements.md) -- tag-based GE requirements
 - [Naming Conventions](naming-conventions.md) -- broader naming patterns
 - [Buff/Debuff System](buff-debuff-system.md) -- tags for buff categories
+- [Starter Tag Preset](starter-tags.md) -- 135+ ready-to-use tags across 21 namespaces

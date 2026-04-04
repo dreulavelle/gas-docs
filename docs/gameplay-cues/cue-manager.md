@@ -162,6 +162,8 @@ The `FGameplayCueTranslationManager` (accessible via `TranslationManager` on the
 
 Translation happens in step 2 of the routing pipeline, before the notify lookup. Implement custom translators by working with the `FGameplayCueTranslationManager` API.
 
+For the complete guide, see [Cue Translator](cue-translator.md).
+
 ## Batching and Pending Cues
 
 The manager supports batching cue events to reduce RPC overhead. This is managed through a **send context**:

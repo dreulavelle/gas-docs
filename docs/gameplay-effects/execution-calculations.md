@@ -333,3 +333,9 @@ The execution definition has a `PassedInTags` container. These tags are made ava
 
 !!! note "Output Modifier Operations"
     Output modifiers from ExecCalcs are typically `Additive` (adding/subtracting from an attribute). But you can use any `EGameplayModOp`. Override is particularly useful when you want to _set_ an attribute to a specific value.
+
+## Related Pages
+
+- [Damage Pipeline](../patterns/damage-pipeline.md) -- the end-to-end pattern that ExecCalcs typically power
+- [Magnitude Calculations](magnitude-calculations.md) -- CustomCalculationClass for single-modifier formulas (lighter alternative to ExecCalcs)
+- [Modifiers](modifiers.md) -- how individual attribute modifications work outside of ExecCalcs

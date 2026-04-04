@@ -5,9 +5,9 @@ description: UAbilityAsync — the newer async task base class that works outsid
 
 # Async Ability Tasks
 
-`UAbilityAsync` is the newer alternative to `UAbilityTask` for listening to ability system events. The key difference is scope: while `UAbilityTask` is tied to a specific ability's lifetime, `UAbilityAsync` is a standalone `UCancellableAsyncAction` that can be used from **anywhere** — UI widgets, AI controllers, HUDs, game mode code, or even other abilities.
+`UAbilityAsync` is the newer alternative to [`UAbilityTask`](ability-tasks.md) for listening to ability system events. The key difference is scope: while `UAbilityTask` is tied to a specific ability's lifetime, `UAbilityAsync` is a standalone `UCancellableAsyncAction` that can be used from **anywhere** — UI widgets, AI controllers, HUDs, game mode code, or even other abilities.
 
-If you need to listen for attribute changes in a health bar widget, or watch for tag changes in an AI behavior tree task, `UAbilityAsync` is the tool you want.
+If you need to listen for attribute changes in a health bar widget, or watch for tag changes in an AI behavior tree task, `UAbilityAsync` is the tool you want. For common UI integration patterns, see [GAS to UI](../patterns/gas-to-ui.md).
 
 ## How They Differ from UAbilityTask
 
@@ -250,3 +250,9 @@ private:
 ```
 
 Override `Activate()` to register your callbacks and `EndAction()` to clean them up. Always call `ShouldBroadcastDelegates()` before firing your output delegates — it checks that the action and ASC are still valid.
+
+## Related Pages
+
+- [Ability Tasks](ability-tasks.md) -- the ability-scoped equivalent with automatic cleanup on EndAbility
+- [GAS to UI](../patterns/gas-to-ui.md) -- patterns for connecting ability system state to UMG widgets using async tasks
+- [Ability Task Catalog](../reference/ability-task-catalog.md) -- complete reference for all built-in UAbilityTask and UAbilityAsync classes

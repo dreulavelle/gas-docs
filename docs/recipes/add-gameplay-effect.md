@@ -132,3 +132,4 @@ For Duration/Infinite effects, this triggers Add when applied and Remove when ex
 - [Gameplay Effects Overview](../core-concepts/gameplay-effects-overview.md) -- concepts
 - [Modifiers](../gameplay-effects/modifiers.md) -- modifier deep dive
 - [GE Components](../gameplay-effects/ge-components.md) -- the component architecture
+- [Blueprint Function Library](../reference/blueprint-library.md) -- all available Blueprint nodes for GAS

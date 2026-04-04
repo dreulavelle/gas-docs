@@ -1,6 +1,3 @@
----
-icon: material/puzzle
----
 
 # GE Component Catalog
 
@@ -202,3 +199,8 @@ Grants tags to the target actor's owned tag set while the GE is active.
 | `InheritableGrantedTagsContainer` | `FInheritedTagContainer` | Tags granted to the target, with parent GE inheritance support |
 
 These tags are removed when the GE expires or is removed.
+
+## Related Pages
+
+- [GE Components](../gameplay-effects/ge-components.md) -- concepts, the base class API, migration from monolithic properties, and how components interact
+- [Tags and Requirements](../gameplay-effects/tags-and-requirements.md) -- how tag-based components control application, inhibition, and removal

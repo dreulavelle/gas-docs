@@ -264,3 +264,9 @@ Option 2 (SetByCaller with computed duration) is the most common approach for co
 
 !!! note "Cooldowns Are Gameplay Effects"
     Because cooldowns are just GEs, they interact with the rest of GAS naturally. An effect can grant immunity to cooldown GEs, a "reset cooldowns" ability can remove all active effects with the `Cooldown` tag, and the debug views show cooldowns alongside all other active effects.
+
+## Related Pages
+
+- [Lifecycle and Activation](../gameplay-abilities/lifecycle-and-activation.md) -- the commit pattern that applies costs and cooldowns
+- [SetByCaller](set-by-caller.md) -- passing dynamic cooldown durations and cost amounts at runtime
+- [Common Abilities](../patterns/common-abilities.md) -- cooldown and cost patterns in typical ability implementations
