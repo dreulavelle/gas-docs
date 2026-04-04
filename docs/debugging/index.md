@@ -1,80 +1,103 @@
 ---
 title: Debugging GAS
-description: Triage flowchart and debugging tools overview for Gameplay Ability System issues.
+description: Triage guides and debugging tools overview for Gameplay Ability System issues.
 ---
 
 # Debugging GAS
 
 Something's not working. Let's figure out what.
 
-## "My Ability Isn't Working" Decision Tree
+## Triage: What's Going Wrong?
 
-```
-Ability won't activate?
-├─ Is the ability granted?
-│  └─ No → Grant it (GiveAbility). Check showdebug.
-├─ Check showdebug abilitysystem → is it in the ability list?
-│  └─ No → It's not granted. Fix granting logic.
-├─ Does the ability have Activation Blocked Tags?
-│  └─ Check if the owning ASC has any of those tags right now.
-├─ Does the ability have Activation Required Tags?
-│  └─ Check if the owning ASC is MISSING any of those tags.
-├─ Is the ability on cooldown?
-│  └─ Check Active Effects for the cooldown GE.
-├─ Can the owner afford the cost?
-│  └─ Check the relevant attribute value vs the cost GE.
-├─ Is the Net Execution Policy correct?
-│  └─ ServerOnly won't run on clients. LocalOnly won't run on server.
-├─ Does CanActivateAbility return true?
-│  └─ Override it, add logging, check what fails.
-└─ Check the output log for "AbilitySystem" warnings.
+Pick the symptom that matches your situation:
 
-Effect doesn't modify attribute?
-├─ Is the effect actually applied?
-│  └─ Check showdebug → Active Effects list.
-├─ Is the modifier targeting the right attribute?
-│  └─ Check the GE's modifier setup.
-├─ Is the modifier magnitude non-zero?
-│  └─ Check SetByCaller values, curve lookups, MMC output.
-├─ Are there tag requirements filtering the modifier?
-│  └─ Check source/target tag requirements on the modifier.
-└─ Is the attribute on the target's AttributeSet?
-    └─ Missing attributes cause silent failures.
+### :material-lightning-bolt-circle:{ .lg } My ability won't activate
 
-Cue doesn't play?
-├─ Is the cue tag set correctly on both the GE and the cue notify?
-├─ Is the cue in a scanned path?
-│  └─ Check GameplayCueNotifyPaths in project settings.
-├─ Is the cue loaded?
-│  └─ Check for "missing gameplay cue" log warnings.
-├─ Are cues suppressed?
-│  └─ Check ShouldSuppressGameplayCues.
-└─ Is this a local-only cue on a non-local client?
-    └─ Replicated cues need to go through the server.
-```
+??? note " Is the ability granted?"
+    Open the console and run `showdebug abilitysystem`. Look at the **Granted Abilities** list. Is your ability there?
+
+    - **Not listed** — the ability was never granted. Check that it's in your character's `StartupAbilities` array, or that `GiveAbility()` is being called at runtime.
+    - **Listed** — move to Step 2.
+
+??? note " Is it blocked by tags?"
+    Check your ability's **Activation Blocked Tags** in its Class Defaults. Then check `showdebug` for the owner's current tags. If the owner has *any* of the blocked tags, the ability can't activate.
+
+    Common culprits: `State.Dead`, `CrowdControl.Hard.Stun`, a leftover tag from a previous ability that didn't call `EndAbility`.
+
+??? note " Is it on cooldown?"
+    Check `showdebug` → **Active Effects**. If you see the cooldown GE still active, the ability is still on cooldown. Check the cooldown duration — is it longer than expected?
+
+    Also check: does the cooldown GE actually grant a `Cooldown.*` tag? Without the tag, GAS doesn't know the ability is on cooldown.
+
+??? note " Can the owner afford the cost?"
+    Check the relevant attribute value in `showdebug` → **Attributes**. If Stamina is 3 and the cost is 5, the ability fails silently.
+
+??? note " Is the Net Execution Policy correct?"
+    - `ServerOnly` abilities won't activate on clients
+    - `LocalOnly` abilities won't activate on the server
+    - `LocalPredicted` is the most common choice for player abilities
+
+??? note " Check the output log"
+    Filter for `LogAbilitySystem` in the Output Log. GAS logs activation failures with reasons. Common messages:
+
+    - `"Can't activate LocalOnly or LocalPredicted ability when not local"` — wrong net role
+    - `"Can't activate ability because tags are blocked"` — tag check failed
+    - `"Cost check failed"` — not enough resources
+
+---
+
+### :material-diamond-stone:{ .lg } My effect doesn't modify the attribute
+
+??? note " Is the effect actually applied?"
+    Check `showdebug` → **Active Effects**. For Instant effects, they won't appear here (they execute and disappear). For Duration/Infinite effects, they should be listed.
+
+    If it's not listed, the effect was never applied — check the ability's `ApplyGameplayEffectSpec` call.
+
+??? note " Is the modifier targeting the right attribute?"
+    Open the GE Blueprint and verify the modifier's **Attribute** field matches your actual AttributeSet class name *exactly*. `MyAttributeSet.Health` is different from `OtherAttributeSet.Health`.
+
+??? note " Is the magnitude non-zero?"
+    - **SetByCaller**: Check the Output Log for `"SetByCaller tag not found"`. This means the ability didn't call `SetSetByCallerMagnitude` with the matching tag.
+    - **Scalable Float**: Is the value actually set? A default of 0 does nothing.
+    - **Attribute-Based or MMC**: Add logging to your calculation class.
+
+??? note " Are tag requirements filtering the modifier?"
+    Individual modifiers can have source/target tag requirements. If the source ASC or target ASC doesn't have the required tags, the modifier is skipped silently.
+
+??? note " Is the attribute on the target's AttributeSet?"
+    If the target doesn't have the attribute you're modifying, nothing happens — no error, no crash, just silence. Verify the target has an ASC with the right AttributeSet.
+
+---
+
+### :material-volume-off:{ .lg } My cue doesn't play
+
+??? note " Does the tag match?"
+    The cue Blueprint's **Gameplay Cue Tag** must exactly match the `GameplayCue.*` tag on the effect or the tag passed to `ExecuteGameplayCue`. Case-sensitive, hierarchy matters.
+
+??? note " Is the cue discovered?"
+    Check the Output Log for `"missing gameplay cue"` warnings. The GameplayCueManager scans specific paths — your cue Blueprint might be in a folder it doesn't scan. Check **Project Settings → Gameplay Cues → Paths**.
+
+??? note " Is the cue loaded?"
+    Cues can be lazy-loaded. If the cue hasn't been loaded yet when the effect fires, it won't play on the first trigger. Check [Lazy Loading](../optimization/lazy-loading.md) settings.
+
+??? note " Are cues suppressed?"
+    `ShouldSuppressGameplayCues` can be overridden to conditionally suppress cues. Also check if this is a local-only cue firing on a non-local client — replicated cues go through the server.
+
+---
 
 ## Debugging Tools
 
-### [ShowDebug AbilitySystem](showdebug-abilitysystem.md)
-
-The built-in HUD overlay that shows attributes, active abilities, active effects, and tags for the debugged actor. This is your first stop for any GAS debugging.
-
-### [Gameplay Debugger](gameplay-debugger.md)
-
-UE's Gameplay Debugger has an Abilities category that shows GAS state for any actor in the world, not just the player.
-
-### [Logging](logging.md)
-
-The `LogAbilitySystem`, `VLogAbilitySystem`, and `LogGameplayEffects` log categories, plus the Visual Logger for attribute change tracking.
-
-### [Troubleshooting](troubleshooting.md)
-
-FAQ-format page: specific symptom → likely cause → fix. Covers all the common gotchas.
+| Tool | Best For | Page |
+|---|---|---|
+| **ShowDebug AbilitySystem** | Real-time HUD overlay of abilities, effects, attributes, tags | [Details](showdebug-abilitysystem.md) |
+| **Gameplay Debugger** | Inspecting any actor in the world (not just the player) | [Details](gameplay-debugger.md) |
+| **Output Log** | Activation failures, missing SetByCaller, tag warnings | [Details](logging.md) |
+| **Troubleshooting FAQ** | Specific symptoms with known causes and fixes | [Details](troubleshooting.md) |
 
 ## Quick Console Commands
 
 | Command | What It Does |
-|:---|:---|
+|---|---|
 | `showdebug abilitysystem` | Toggle the ability system debug HUD |
 | `AbilitySystem.Debug.NextCategory` | Cycle through debug pages (attributes, abilities, effects) |
 | `AbilitySystem.Debug.NextTarget` | Cycle through debug targets |

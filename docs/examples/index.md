@@ -8,23 +8,32 @@ Complete, end-to-end ability implementations. Each example walks through the ful
 
 Every example is **standalone**. You can jump to any one without reading the others.
 
+!!! tip "Looking for a simpler starting point?"
+    The [Getting Started](../getting-started/index.md) section includes a [jump ability tutorial](../getting-started/your-first-ability.md) — the simplest possible GAS ability. Start there if you're new, then come back here for more complex examples.
+
 ## The Examples
 
-| Example | What It Demonstrates | Complexity |
-|:---|:---|:---|
-| **[Jump](jump.md)** | The simplest GAS ability. Stamina cost, cooldown, CC blocking, airborne state tracking. | :material-star: |
-| **[Melee Attack](melee-attack.md)** | Animation-driven hit timing, SetByCaller damage, montage lifecycle, gameplay events. | :material-star::material-star: |
-| **[Dodge Roll](dodge-roll.md)** | Stamina cost, cooldown, i-frames via Activation Owned Tags, root motion, ability blocking. | :material-star::material-star::material-star: |
-| **[Ranged Attack](ranged-attack.md)** | Projectile spawning, passing GE specs to actors, mana cost, aim direction, travel-time damage. | :material-star::material-star::material-star: |
+### :material-circle:{ style="color: #4caf50" } Beginner
 
-!!! tip "Reading order"
-    The examples are listed in order of increasing complexity — jump is the simplest, ranged attack is the most involved. But they're written to be self-contained, so feel free to jump (pun intended) to whichever one matches what you're building.
+| Example | What It Demonstrates |
+|:---|:---|
+| **[Sprint Toggle](sprint.md)** | Toggle/held ability, infinite-duration effects, periodic stamina drain, WaitInputRelease. |
 
-## How These Relate to Getting Started
+### :material-circle:{ style="color: #ffa726" } Intermediate
 
-The [Getting Started](../getting-started/index.md) section includes a [simplified jump ability](../getting-started/your-first-ability.md) as part of the guided tutorial. The [Jump example here](jump.md) is the expanded version — it adds airborne state tracking, landing detection, and a comparison to the engine's built-in `UGameplayAbility_CharacterJump`.
+| Example | What It Demonstrates |
+|:---|:---|
+| **[Dodge Roll](dodge-roll.md)** | Stamina cost, cooldown, i-frames via Activation Owned Tags, root motion, ability blocking. |
+| **[Melee Attack](melee-attack.md)** | Animation-driven hit timing, SetByCaller damage, montage lifecycle, gameplay events. |
+| **[Ranged Attack](ranged-attack.md)** | Projectile spawning, passing GE specs to actors, mana cost, aim direction, travel-time damage. |
+| **[Passive Aura](passive-aura.md)** | Passive activation, periodic area scanning, applying effects to other actors' ASCs, handle tracking. |
 
-If you've already done the Getting Started tutorial, the Jump example here will feel like a natural extension.
+### :material-circle:{ style="color: #ef5350" } Advanced
+
+| Example | What It Demonstrates |
+|:---|:---|
+| **[Custom Damage Calculation](exec-calc-damage.md)** | UGameplayEffectExecutionCalculation, attribute captures, elemental resistance, crit formula. C++ only. |
+| **[Network-Predicted Ability](predicted-ability.md)** | Client-side prediction, predict-confirm-reject cycle, FScopedPredictionWindow, multiplayer. C++ only. |
 
 ## What You Need
 

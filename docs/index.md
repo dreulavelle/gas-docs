@@ -13,14 +13,9 @@ The comprehensive guide to Unreal Engine's Gameplay Ability System. Every class,
 </p>
 
 <div class="hero-badges" markdown>
-  <span class="hero-badge" markdown>:simple-unrealengine: UE 5.7</span>
-  <span class="hero-badge" markdown>:material-file-document-multiple: 82 Pages</span>
+  <span class="hero-badge" markdown>:simple-unrealengine: Unreal Engine</span>
   <span class="hero-badge" markdown>:material-open-source-initiative: Open Source</span>
 </div>
-
-[Get Started :material-arrow-right:](getting-started/index.md){ .md-button .md-button--primary }
-&nbsp;&nbsp;
-[Download Starter Pack :material-download:](/gas-starter-pack.zip){ .md-button }
 
 </div>
 

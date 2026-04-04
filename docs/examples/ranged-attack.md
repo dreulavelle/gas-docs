@@ -1,28 +1,40 @@
 ---
-title: "Example: Ranged Attack"
 icon: material/bow-arrow
-description: Complete ranged attack ability with projectile spawning, travel-time damage, mana cost, and proper GE spec passing.
+description: Complete ranged attack ability with projectile spawning, GE spec passing for correct damage attribution, mana cost, and silence CC blocking.
 ---
 
 # Example: Ranged Attack
 
-A ranged projectile ability that demonstrates spawning actors from within an ability, passing damage data to a projectile, and having the projectile — not the ability — apply the damage effect on hit. This is the pattern you'll use for fireballs, arrows, energy blasts, and anything else that travels through space before dealing damage.
+<div class="example-badges" markdown>
+  <span class="badge badge--intermediate">Intermediate</span>
+</div>
 
-!!! tip "Prerequisites"
-    This example assumes you've completed [Project Setup](../getting-started/project-setup.md) and have a working character with an ASC, AttributeSet (Health, Mana, PendingDamage), and a base ability class. If you need Stamina instead of Mana for your project, just swap the attribute — the pattern is identical.
+## Overview
+
+A ranged projectile ability that demonstrates spawning actors from within an ability, passing a pre-built damage spec to the projectile, and having the projectile -- not the ability -- apply the damage on hit. This is the pattern for fireballs, arrows, energy blasts, and anything else that travels through space before dealing damage. The critical lesson here is how `FGameplayEffectSpecHandle` carries the caster's ASC context to the point of impact, ensuring correct damage attribution even though the projectile (not the caster) triggers the application.
 
 ## What We're Building
 
-A ranged attack that:
+- **Mana cost** of 20 per shot
+- **Cooldown** of 1.5 seconds
+- **Projectile spawning** aimed from the camera, not the character facing direction
+- **GE spec passing** -- the ability creates the damage spec, the projectile applies it on hit
+- **SetByCaller damage** of 30, data-driven via the spec
+- **Silence blocking** -- can't cast while silenced (`CrowdControl.Soft.Silence`), distinct from melee which only blocks on hard CC
+- **PendingDamage meta attribute** -- same damage pipeline as melee
 
-- **Costs mana** (10 per shot)
-- **Has a cooldown** (0.8 seconds)
-- **Spawns a projectile** in the camera's aim direction
-- **Projectile applies damage on hit** using a GE spec created by the ability
-- **Blocked by CC** — can't fire while dead, stunned, or silenced
-- **Uses SetByCaller** for the damage amount (data-driven)
+## Prerequisites
 
-The key difference from melee: the ability doesn't apply damage directly. It creates a damage GE spec, hands it to the projectile, and the projectile applies it when it hits something. This means damage attribution (who dealt the damage, what ability caused it) is preserved correctly through the `FGameplayEffectContext`.
+!!! tip "What you need before starting"
+    This example assumes you have completed [Project Setup](../getting-started/project-setup.md) and have:
+
+    - A character with an **Ability System Component**
+    - An **AttributeSet** with Health, Mana (or Magic), and PendingDamage attributes
+    - A **base ability class** (`YourProjectGameplayAbility`) with an `InputTag` property
+    - An **input binding system** that routes Enhanced Input actions to abilities by tag
+    - A **static mesh or Niagara system** for the projectile visual (a sphere will do for prototyping)
+
+    If any of that is missing, start with [Project Setup](../getting-started/project-setup.md).
 
 ## Step 1: Create the Effects
 
@@ -31,51 +43,221 @@ The key difference from melee: the ability doesn't apply damage directly. It cre
 | Setting | Value |
 |:---|:---|
 | **Duration Policy** | Instant |
-| **Modifiers[0] — Attribute** | `YourProjectAttributeSet.Mana` |
-| **Modifiers[0] — Modifier Op** | Add |
-| **Modifiers[0] — Magnitude** | Scalable Float: `-10.0` |
+| **Modifiers[0] -- Attribute** | `YourProjectAttributeSet.Mana` |
+| **Modifiers[0] -- Modifier Op** | Add |
+| **Modifiers[0] -- Magnitude** | Scalable Float: `-20.0` |
 
 ### GE_Cooldown_RangedAttack
 
 | Setting | Value |
 |:---|:---|
 | **Duration Policy** | Has Duration |
-| **Duration Magnitude** | Scalable Float: `0.8` |
+| **Duration Magnitude** | Scalable Float: `1.5` (1.5 seconds) |
 | **GrantedTags** | `Cooldown.Ability.RangedAttack` |
 
 ### GE_Damage_Ranged
 
-Same pattern as the melee damage effect — SetByCaller magnitude targeting `PendingDamage`. You can reuse a single generic `GE_Damage` effect for both melee and ranged if you prefer.
+Same pattern as the melee damage effect -- SetByCaller magnitude targeting `PendingDamage`. You can reuse a single generic `GE_Damage` effect for both melee and ranged if you prefer.
 
 | Setting | Value |
 |:---|:---|
 | **Duration Policy** | Instant |
-| **Modifiers[0] — Attribute** | `YourProjectAttributeSet.PendingDamage` |
-| **Modifiers[0] — Modifier Op** | Add |
-| **Modifiers[0] — Magnitude Type** | Set By Caller |
-| **Modifiers[0] — Set By Caller Tag** | `SetByCaller.Damage` |
+| **Modifiers[0] -- Attribute** | `YourProjectAttributeSet.PendingDamage` |
+| **Modifiers[0] -- Modifier Op** | Add |
+| **Modifiers[0] -- Magnitude Type** | Set By Caller |
+| **Modifiers[0] -- Set By Caller Tag** | `SetByCaller.Damage` |
 
 ??? question "Why not reuse GE_Damage_Melee?"
-    You absolutely can — and in many projects, you should. A single `GE_Damage` with SetByCaller works for any damage source. The ability sets the magnitude, the effect applies it. We use a separate name here for clarity, but sharing a damage effect across abilities is a common and recommended pattern. See [SetByCaller](../gameplay-effects/set-by-caller.md) for more on this.
+    You absolutely can -- and in many projects, you should. A single `GE_Damage` with SetByCaller works for any damage source. The ability sets the magnitude, the effect applies it. We use separate names here for clarity, but sharing a damage effect across abilities is a common and recommended pattern. See [SetByCaller](../gameplay-effects/set-by-caller.md) for more on this.
 
-## Step 2: Create the Projectile Actor
+## Step 2: Create the Ability
 
-Create a new Blueprint actor: `BP_Projectile`. This is a standard Unreal actor — it's not a GAS class, but it needs to know how to apply a GAS damage effect.
+Create `GA_RangedAttack` with **YourProjectGameplayAbility** as the parent.
+
+### Class Defaults
+
+| Property | Value | Why |
+|:---|:---|:---|
+| **Input Tag** | `InputTag.Combat.Secondary` | Maps to your ranged attack input |
+| **Ability Tags** | `Ability.Combat.RangedAttack` | Identifies this ability for queries and blocking |
+| **Activation Blocked Tags** | `State.Dead`, `CrowdControl.Hard`, `CrowdControl.Soft.Silence` | Can't cast while dead, stunned, or silenced |
+| **Instancing Policy** | `InstancedPerActor` | Required when using Ability Tasks |
+| **Net Execution Policy** | `LocalPredicted` | Feels responsive on the client |
+| **Cost Gameplay Effect Class** | `GE_Cost_RangedAttack` | Mana check and deduction |
+| **Cooldown Gameplay Effect Class** | `GE_Cooldown_RangedAttack` | 1.5s re-activation delay |
+
+!!! info "Silence vs Root vs Stun"
+    Notice we block on `CrowdControl.Soft.Silence` but not `CrowdControl.Soft.Root`. A rooted character can't move but *can* still cast ranged abilities -- that's the design distinction between root and silence. Compare with [Melee Attack](melee-attack.md) which blocks only on `CrowdControl.Hard` (stun) -- melee doesn't require "casting" so silence doesn't affect it. This is a deliberate design choice: silence shuts down casters, stun shuts down everyone.
+
+### Event Graph
+
+=== "Blueprint"
+    ```
+    Event ActivateAbility
+        |
+        v
+    Commit Ability
+        |-- [Failed] -------> End Ability (Cancelled = true)
+        |
+        v [Success]
+    Make Outgoing Gameplay Effect Spec (GE_Damage_Ranged)
+        |
+        v
+    Assign Set By Caller Magnitude
+        |-- Spec Handle: (from above)
+        |-- Data Tag: SetByCaller.Damage
+        +-- Magnitude: 30.0
+        |
+        v
+    Get Aim Direction (camera forward + spawn offset)
+        |
+        v
+    Spawn Actor from Class (BP_Projectile)
+        |-- Location: Character location + forward offset
+        |-- Rotation: Aim direction rotation
+        |
+        v
+    Set DamageEffectSpecHandle on spawned projectile
+        |
+        v
+    End Ability (Cancelled = false)
+    ```
+
+    **Step-by-step breakdown:**
+
+    1. **Commit Ability** -- checks mana cost and cooldown, applies both if successful
+    2. **Make Outgoing GE Spec** -- creates the damage spec with the caster's ASC context baked in. This is the critical step -- the spec remembers *who* created it
+    3. **Assign SetByCaller** -- sets the damage value (30.0) on the spec
+    4. **Get Aim Direction** -- get the camera's forward vector for aiming (not the character's facing)
+    5. **Spawn Actor** -- creates `BP_Projectile` at the character's position, aimed in the fire direction
+    6. **Set DamageEffectSpecHandle** -- passes the pre-built spec to the projectile. The spec carries the caster's context with it
+    7. **End Ability** -- the ability's job is done. The projectile handles damage on its own schedule
+
+=== "C++"
+    ```cpp
+    void UGA_RangedAttack::ActivateAbility(
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo,
+        const FGameplayEventData* TriggerEventData)
+    {
+        if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+        {
+            EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+            return;
+        }
+
+        AActor* AvatarActor = GetAvatarActorFromActorInfo();
+        if (!AvatarActor)
+        {
+            EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+            return;
+        }
+
+        // --- Create the damage spec with caster context ---
+        FGameplayEffectSpecHandle DamageSpec =
+            MakeOutgoingGameplayEffectSpec(
+                DamageEffectClass,  // UPROPERTY: TSubclassOf<UGameplayEffect>
+                GetAbilityLevel());
+
+        DamageSpec.Data->SetSetByCallerMagnitude(
+            FGameplayTag::RequestGameplayTag(
+                FName("SetByCaller.Damage")),
+            DamageAmount);  // UPROPERTY: float, default 30.0
+
+        // --- Get aim direction from the player's camera ---
+        FVector SpawnLocation;
+        FRotator SpawnRotation;
+        GetAimDirectionAndLocation(SpawnLocation, SpawnRotation);
+
+        // --- Spawn the projectile ---
+        FActorSpawnParameters SpawnParams;
+        SpawnParams.Owner = AvatarActor;
+        SpawnParams.Instigator = Cast<APawn>(AvatarActor);
+        SpawnParams.SpawnCollisionHandlingOverride =
+            ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+        AProjectileBase* Projectile =
+            GetWorld()->SpawnActor<AProjectileBase>(
+                ProjectileClass,  // UPROPERTY: TSubclassOf<AProjectileBase>
+                SpawnLocation,
+                SpawnRotation,
+                SpawnParams);
+
+        if (Projectile)
+        {
+            // Pass the pre-built spec to the projectile
+            Projectile->DamageEffectSpecHandle = DamageSpec;
+        }
+
+        EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+    }
+
+    void UGA_RangedAttack::GetAimDirectionAndLocation(
+        FVector& OutLocation,
+        FRotator& OutRotation) const
+    {
+        AActor* AvatarActor = GetAvatarActorFromActorInfo();
+        const FGameplayAbilityActorInfo* ActorInfo =
+            GetCurrentActorInfo();
+
+        if (APlayerController* PC = Cast<APlayerController>(
+                ActorInfo->PlayerController.Get()))
+        {
+            FVector CameraLocation;
+            FRotator CameraRotation;
+            PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+
+            OutRotation = CameraRotation;
+            // Offset to avoid self-hit with character capsule
+            OutLocation = AvatarActor->GetActorLocation()
+                + (CameraRotation.Vector() * SpawnOffset);
+                // UPROPERTY: float, default 100.0
+        }
+        else
+        {
+            // Fallback for AI: use actor's forward vector
+            OutLocation = AvatarActor->GetActorLocation()
+                + (AvatarActor->GetActorForwardVector() * SpawnOffset);
+            OutRotation = AvatarActor->GetActorRotation();
+        }
+    }
+    ```
+
+### Getting Aim Direction
+
+For a third-person game, the projectile should fire toward where the camera is looking, not where the character is facing. The ability queries the PlayerController's view point and spawns the projectile in that direction.
+
+=== "Blueprint"
+    ```
+    Get Player Camera Manager --> Get Actor Forward Vector --> (Aim Direction)
+    Get Avatar Actor --> Get Actor Location + (Aim Direction * 100) --> (Spawn Location)
+    ```
+
+=== "C++"
+    See the `GetAimDirectionAndLocation` method in the C++ tab above.
+
+!!! tip "Spawn offset"
+    The `* 100.f` offset prevents the projectile from spawning inside the character and immediately hitting the collision capsule. Adjust this based on your character's size. For a production setup, you'd typically use a socket on the character's mesh (weapon muzzle, hand, etc.) as the spawn point.
+
+## Step 3: Create the Projectile Actor
+
+The projectile is a standard Unreal actor -- it's not a GAS class, but it needs to know how to apply a GAS damage effect. Create a new Blueprint or C++ actor: `BP_Projectile` (or `AProjectileBase` in C++).
 
 ### Components
 
 | Component | Type | Purpose |
 |:---|:---|:---|
-| **CollisionSphere** | Sphere Collision | Hit detection. Set radius to ~10-20 units |
-| **ProjectileMovement** | Projectile Movement Component | Handles velocity, gravity, homing. Set Initial Speed and Max Speed (e.g., 3000) |
-| **Mesh** | Static Mesh (or Niagara) | Visual representation |
+| **CollisionSphere** | Sphere Collision | Hit detection. Set radius to 10-20 units. Set collision profile to `Projectile` or similar |
+| **ProjectileMovement** | UProjectileMovementComponent | Handles velocity, gravity, homing. Set Initial Speed and Max Speed (e.g., 3000) |
+| **Mesh** | Static Mesh or Niagara | Visual representation. A sphere is fine for prototyping |
 
 ### Properties
 
-The projectile needs to store the information required to apply damage on hit:
+The projectile needs one critical property: the damage spec from the ability.
 
 === "Blueprint"
-    Add these variables to `BP_Projectile`:
+    Add a variable to `BP_Projectile`:
 
     | Variable | Type | Purpose |
     |:---|:---|:---|
@@ -84,13 +266,15 @@ The projectile needs to store the information required to apply damage on hit:
 === "C++"
     ```cpp
     UCLASS()
-    class ABP_Projectile : public AActor
+    class AProjectileBase : public AActor
     {
         GENERATED_BODY()
 
     public:
-        ABP_Projectile();
+        AProjectileBase();
 
+        /** Damage spec created by the spawning ability.
+          * Carries the caster's ASC context for correct attribution. */
         UPROPERTY(BlueprintReadWrite, Meta = (ExposeOnSpawn = true))
         FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
@@ -114,32 +298,46 @@ The projectile needs to store the information required to apply damage on hit:
 
 ### OnHit: Applying Damage
 
-This is the critical part. When the projectile hits something, it needs to apply the damage GE spec to the target's ASC. The spec already contains the correct instigator, source, and damage magnitude — the ability configured all of that before passing it to the projectile.
+This is the critical part. When the projectile hits something, it applies the damage GE spec to the target's ASC. The spec already contains the correct instigator, source, and damage magnitude -- the ability configured all of that before passing it to the projectile.
 
 === "Blueprint"
     ```
     Event OnComponentHit (CollisionSphere)
-        │
-        ▼
-    Other Actor ──► Get Ability System Component (via interface or cast)
-        │
-        ▼ [Valid ASC?]
-    Target ASC ──► Apply Gameplay Effect Spec to Self
-        ├── Spec Handle: DamageEffectSpecHandle (the stored spec)
-        │
-        ▼
+        |
+        v
+    Other Actor --> Get Ability System Component (via interface or cast)
+        |
+        v [Valid ASC?]
+    Target ASC --> Apply Gameplay Effect Spec to Self
+        |-- Spec Handle: DamageEffectSpecHandle (the stored spec)
+        |
+        v
     Destroy Actor (self)
     ```
 
+    Important: also add a branch at the top to check `Other Actor != Get Instigator()` -- this prevents the projectile from damaging the caster if it spawns slightly inside them.
+
 === "C++"
     ```cpp
-    void ABP_Projectile::OnHit(
+    void AProjectileBase::BeginPlay()
+    {
+        Super::BeginPlay();
+
+        CollisionSphere->OnComponentHit.AddDynamic(
+            this, &AProjectileBase::OnHit);
+
+        // Destroy after 5 seconds if nothing is hit
+        SetLifeSpan(5.0f);
+    }
+
+    void AProjectileBase::OnHit(
         UPrimitiveComponent* HitComp,
         AActor* OtherActor,
         UPrimitiveComponent* OtherComp,
         FVector NormalImpulse,
         const FHitResult& Hit)
     {
+        // Don't damage the caster
         if (!OtherActor || OtherActor == GetInstigator())
         {
             Destroy();
@@ -162,246 +360,150 @@ This is the critical part. When the projectile hits something, it needs to apply
     ```
 
 !!! danger "Don't create a new GE spec in the projectile"
-    A common mistake is having the projectile create its own `MakeOutgoingSpec` using its own context. The problem: the projectile isn't a GAS actor. It has no ASC, so `MakeEffectContext()` would have the wrong instigator and source. The damage would look like it came from nobody. Always pass the pre-built spec from the ability — it carries the correct `FGameplayEffectContext` with the caster's ASC as the instigator.
+    A common mistake is having the projectile create its own `MakeOutgoingSpec` using its own context. The problem: the projectile isn't a GAS actor. It has no ASC, so `MakeEffectContext()` would have the wrong instigator and source. The damage would look like it came from nobody. Always pass the pre-built spec from the ability -- it carries the correct `FGameplayEffectContext` with the caster's ASC as the instigator.
 
-### Why This Works
+### Why Passing the Spec Handle Works
 
 When the ability creates the GE spec via `MakeOutgoingGameplayEffectSpec`, the spec's `FGameplayEffectContext` is automatically populated with:
 
-- **Instigator** — the caster's actor (from `GetAvatarActorFromActorInfo()`)
-- **EffectCauser** — the caster's actor (by default; you can override to be the projectile)
-- **InstigatorAbilitySystemComponent** — the caster's ASC
+| Context Field | Value | Used For |
+|:---|:---|:---|
+| **Instigator** | The caster's actor (from `GetAvatarActorFromActorInfo()`) | Kill credit, damage logs |
+| **EffectCauser** | The caster's actor (by default) | Source identification |
+| **InstigatorAbilitySystemComponent** | The caster's ASC | Attribute lookups, source-side modifiers |
+| **AbilityInstance** | The ability that created the spec | Ability-specific damage scaling |
 
-This context travels with the spec handle. When the projectile applies it to the target, all attribution is correct — damage logs, kill credit, and any `PostGameplayEffectExecute` logic that checks the source will work properly.
+This context travels with the spec handle as a shared pointer. When the projectile applies the spec to the target seconds later and potentially far from the caster, all attribution is correct. Damage logs, kill credit, and any `PostGameplayEffectExecute` logic that checks the source will work properly.
 
 ??? tip "Setting the projectile as EffectCauser"
     If your damage pipeline needs to know that the damage came from a projectile (for knockback direction, hit effects, etc.), you can modify the context after creating the spec:
 
     ```cpp
     FGameplayEffectContextHandle Context =
-        SpecHandle.Data->GetEffectContext();
+        DamageSpec.Data->GetEffectContext();
     Context.AddActors({Projectile});
     ```
 
     Or in Blueprint, use **Get Effect Context** on the spec handle, then set the source object. The instigator (caster) stays correct while the causer becomes the projectile.
 
-## Step 3: Create the Ability Blueprint
+## Step 3: Wire Input
 
-Create `GA_RangedAttack` with **YourProjectGameplayAbility** as the parent.
+### 1. InputAction Asset
 
-### Class Defaults
+Create `IA_RangedAttack` (right-click > **Input > Input Action**). Set the Value Type to `Digital (Bool)`.
 
-| Property | Value | Why |
-|:---|:---|:---|
-| **Input Tag** | `InputTag.Combat.Secondary` | Maps to ranged attack input |
-| **Ability Tags** | `Ability.Combat.RangedAttack` | Identifies this ability |
-| **Activation Blocked Tags** | `State.Dead`, `CrowdControl.Hard`, `CrowdControl.Soft.Silence` | Can't cast while dead, stunned, or silenced |
-| **Cost Gameplay Effect Class** | `GE_Cost_RangedAttack` | Mana check and deduction |
-| **Cooldown Gameplay Effect Class** | `GE_Cooldown_RangedAttack` | 0.8s re-activation delay |
-| **Instancing Policy** | `InstancedPerActor` | Needed if using ability tasks |
-| **Net Execution Policy** | `LocalPredicted` | Feels responsive on client |
+### 2. InputMappingContext
 
-!!! info "Silence vs Root"
-    Notice we block on `CrowdControl.Soft.Silence` but not `CrowdControl.Soft.Root`. A rooted character can't move but *can* still cast ranged abilities — that's the design distinction between root and silence. Compare with [Jump](jump.md) which blocks on Root but not Silence.
+In your `IMC_Default`, add:
 
-### Event Graph
+- **Input Action:** `IA_RangedAttack`
+- **Key:** Right Mouse Button (or your preferred ranged attack key)
+
+### 3. Route Input to the ASC
 
 === "Blueprint"
-    ```
-    Event ActivateAbility
-        │
-        ▼
-    Commit Ability ──► [Failed] ──► End Ability (Cancelled = true)
-        │
-        ▼ [Success]
-    Make Outgoing Gameplay Effect Spec (GE_Damage_Ranged)
-        │
-        ▼
-    Assign Set By Caller Magnitude
-        ├── Spec Handle: (from above)
-        ├── Data Tag: SetByCaller.Damage
-        └── Magnitude: 20.0
-        │
-        ▼
-    Get Aim Direction (see below)
-        │
-        ▼
-    Spawn Actor from Class
-        ├── Class: BP_Projectile
-        ├── Location: Character location + forward offset
-        ├── Rotation: Aim direction rotation
-        │
-        ▼
-    Set DamageEffectSpecHandle on the spawned projectile
-        │
-        ▼
-    End Ability (Cancelled = false)
-    ```
+    In your Character Blueprint's Event Graph:
 
-=== "Step-by-Step"
-    1. **Commit Ability** — checks cost (mana) and cooldown, applies both
-    2. **Make Outgoing GE Spec** — creates the damage spec with the caster's context baked in
-    3. **Assign SetByCaller** — sets the damage value (20.0) on the spec
-    4. **Get Aim Direction** — get the camera's forward vector for aiming
-    5. **Spawn Actor** — creates `BP_Projectile` at the character's position, aimed in the fire direction
-    6. **Set DamageEffectSpecHandle** — passes the pre-built spec to the projectile
-    7. **End Ability** — the ability's job is done. The projectile handles damage on its own schedule
+    1. Add an **Enhanced Input Action** event node for `IA_RangedAttack`
+    2. From the exec pin, call **Get Ability System Component** on Self
+    3. Iterate activatable abilities and try to activate any whose Input Tag matches `InputTag.Combat.Secondary`
 
 === "C++"
     ```cpp
-    void UGA_RangedAttack::ActivateAbility(
-        const FGameplayAbilitySpecHandle Handle,
-        const FGameplayAbilityActorInfo* ActorInfo,
-        const FGameplayAbilityActivationInfo ActivationInfo,
-        const FGameplayEventData* TriggerEventData)
-    {
-        if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-        {
-            EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-            return;
-        }
-
-        AActor* AvatarActor = GetAvatarActorFromActorInfo();
-        if (!AvatarActor)
-        {
-            EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-            return;
-        }
-
-        // Create the damage spec with correct context
-        FGameplayEffectSpecHandle DamageSpec =
-            MakeOutgoingGameplayEffectSpec(
-                DamageEffectClass, // UPROPERTY: TSubclassOf<UGameplayEffect>
-                GetAbilityLevel());
-
-        DamageSpec.Data->SetSetByCallerMagnitude(
-            FGameplayTag::RequestGameplayTag(
-                FName("SetByCaller.Damage")),
-            DamageAmount); // UPROPERTY: float, default 20.0
-
-        // Get aim direction from controller
-        FVector SpawnLocation;
-        FRotator SpawnRotation;
-        GetAimDirectionAndLocation(SpawnLocation, SpawnRotation);
-
-        // Spawn the projectile
-        FActorSpawnParameters SpawnParams;
-        SpawnParams.Owner = AvatarActor;
-        SpawnParams.Instigator = Cast<APawn>(AvatarActor);
-        SpawnParams.SpawnCollisionHandlingOverride =
-            ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-        ABP_Projectile* Projectile = GetWorld()->SpawnActor<ABP_Projectile>(
-            ProjectileClass,
-            SpawnLocation,
-            SpawnRotation,
-            SpawnParams);
-
-        if (Projectile)
-        {
-            Projectile->DamageEffectSpecHandle = DamageSpec;
-        }
-
-        EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-    }
+    // Same pattern as melee/dodge input binding,
+    // but matching InputTag.Combat.Secondary
+    EnhancedInput->BindAction(
+        RangedAttackAction,  // UPROPERTY: TObjectPtr<UInputAction>
+        ETriggerEvent::Started,
+        this, &AYourCharacter::OnRangedAttackInput);
     ```
 
-### Getting Aim Direction
+See [Input Binding](../gameplay-abilities/input-binding.md) for the full production input routing setup.
 
-For a third-person game, the projectile should fire toward where the camera is looking, not where the character is facing. A simple approach:
+### 4. Grant the Ability
 
-=== "Blueprint"
-    ```
-    Get Player Camera Manager ──► Get Actor Forward Vector ──► (Aim Direction)
-    Get Avatar Actor ──► Get Actor Location + (Aim Direction * 100) ──► (Spawn Location)
-    ```
+Add `GA_RangedAttack` to your character's **Startup Abilities** array in Class Defaults.
 
-=== "C++"
-    ```cpp
-    void UGA_RangedAttack::GetAimDirectionAndLocation(
-        FVector& OutLocation,
-        FRotator& OutRotation)
-    {
-        AActor* AvatarActor = GetAvatarActorFromActorInfo();
-        const FGameplayAbilityActorInfo* ActorInfo = GetCurrentActorInfo();
+## Step 4: Test
 
-        if (APlayerController* PC = Cast<APlayerController>(
-                ActorInfo->PlayerController.Get()))
-        {
-            FVector CameraLocation;
-            FRotator CameraRotation;
-            PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+### Basic Test
 
-            OutRotation = CameraRotation;
-            OutLocation = AvatarActor->GetActorLocation()
-                + (CameraRotation.Vector() * 100.f); // offset to avoid self-hit
-        }
-        else
-        {
-            // Fallback for AI: use actor's forward vector
-            OutLocation = AvatarActor->GetActorLocation()
-                + (AvatarActor->GetActorForwardVector() * 100.f);
-            OutRotation = AvatarActor->GetActorRotation();
-        }
-    }
-    ```
+1. Hit Play
+2. Right-click -- a projectile should spawn and fly toward where the camera is looking
+3. Mana drops by 20 (check with `showdebug abilitysystem`)
+4. Spam right-click -- only fires every 1.5 seconds
+5. Aim at a target with an ASC -- confirm their Health drops by 30
+6. Apply `CrowdControl.Soft.Silence` to your character -- confirm the ability is blocked
 
-!!! tip "Spawn offset"
-    The `* 100.f` offset prevents the projectile from spawning inside the character and immediately hitting the collision capsule. Adjust this based on your character's size. For a production setup, you'd typically use a socket on the character's mesh (weapon muzzle, hand, etc.) as the spawn point.
+### ShowDebug Checklist
 
-## Step 4: Wire Input
+| Scenario | Expected Result |
+|:---|:---|
+| Fire at a target | Target's PendingDamage receives 30, Health drops after processing |
+| Fire with insufficient mana | Nothing happens -- cost check fails |
+| Fire during cooldown | Nothing happens -- cooldown tag blocks |
+| Fire while silenced | Nothing happens -- `CrowdControl.Soft.Silence` in Activation Blocked Tags |
+| Fire while rooted | Works -- rooted doesn't block casting |
+| Projectile hits wall | Projectile destroys, no damage applied |
+| Projectile hits caster | Projectile destroys (instigator check), no self-damage |
+| Projectile misses everything | Destroys after lifespan expires (5 seconds) |
 
-1. **Input Action:** Create `IA_RangedAttack` (Digital/Bool)
-2. **Input Mapping Context:** Map `IA_RangedAttack` to **Right Mouse Button** in `IMC_Default`
-3. **Input-to-Tag mapping:** Route `IA_RangedAttack` to `InputTag.Combat.Secondary`
-4. **Grant the ability:** Add `GA_RangedAttack` to your character's Startup Abilities array
+### Edge Cases
 
-## Step 5: Test
-
-1. **Play** — right-click, a projectile should spawn and fly forward
-2. **Mana** drops by 10 (check with `showdebug abilitysystem`)
-3. **Cooldown** — spam right-click, only fires every 0.8s
-4. **Damage** — aim at a target with an ASC, confirm their Health drops by 20
-5. **CC** — apply `CrowdControl.Soft.Silence` to your character and confirm the ability is blocked
-
-??? example "ShowDebug checklist"
-    | Scenario | Expected |
-    |:---|:---|
-    | Fire at a target | Target's PendingDamage receives 20, Health drops after processing |
-    | Fire with insufficient mana | Nothing happens — cost check fails |
-    | Fire during cooldown | Nothing happens — cooldown tag blocks |
-    | Fire while silenced | Nothing happens — Activation Blocked Tags |
-    | Fire while rooted | Works — rooted doesn't block casting |
-    | Projectile hits wall | Projectile destroys, no damage applied |
+- **Caster dies after firing** -- the projectile is already in flight with a valid spec. It will still deal damage and attribute it to the (now dead) caster. This is correct behavior
+- **Target gains `State.Invulnerable` after projectile fires** -- the damage is checked at application time, so invulnerability at the moment of impact blocks it. This is correct
+- **Multiple projectiles from rapid fire** -- each carries its own spec handle (shared pointer), so they all attribute correctly and independently
 
 !!! warning "Common issues"
-    1. **Projectile hits self** — make sure the spawn location is offset far enough, and add an ignore-instigator check in `OnHit`
-    2. **No damage on target** — verify the target has an ASC and that `DamageEffectSpecHandle` is being set on the projectile *after* spawning
-    3. **Wrong damage amount** — check that `SetSetByCallerMagnitude` is called *before* passing the spec to the projectile
-    4. **Damage attributed to nobody** — you're probably creating a new spec in the projectile instead of using the one from the ability
+    1. **Projectile hits self** -- spawn offset is too small, or the instigator check in `OnHit` is missing
+    2. **No damage on target** -- verify the target has an ASC and that `DamageEffectSpecHandle` is set on the projectile *after* spawning
+    3. **Wrong damage amount** -- check that `SetSetByCallerMagnitude` is called *before* passing the spec to the projectile
+    4. **Damage attributed to nobody** -- you're creating a new spec in the projectile instead of using the one from the ability. This is the most common ranged ability bug
+    5. **Projectile doesn't move** -- check that `ProjectileMovementComponent` has `InitialSpeed` and `MaxSpeed` set to non-zero values
+
+## The Full Flow
+
+Here's the complete sequence from button press to damage application:
+
+1. **Input** fires `IA_RangedAttack`
+2. Input handler finds abilities with `InputTag.Combat.Secondary` and calls `TryActivateAbility`
+3. The ASC checks activation requirements:
+    - Blocked tags: Does the owner have `State.Dead`, `CrowdControl.Hard`, or `CrowdControl.Soft.Silence`?
+4. If checks pass, the ability **activates** and `CommitAbility` runs:
+    - Cost: Do we have 20+ Mana? If yes, apply `GE_Cost_RangedAttack` (Mana -20)
+    - Cooldown: Apply `GE_Cooldown_RangedAttack` (tag granted for 1.5 seconds)
+5. The ability creates a damage spec via `MakeOutgoingGameplayEffectSpec(GE_Damage_Ranged)`. The spec's `FGameplayEffectContext` is populated with the caster's actor, ASC, and ability reference
+6. `SetSetByCallerMagnitude` sets the damage value (30.0) on the spec
+7. The ability gets the camera aim direction and spawns `BP_Projectile` at an offset from the character
+8. The ability passes `DamageEffectSpecHandle` to the projectile. The spec (and its context) now lives on the projectile
+9. The ability calls **End Ability**. The ability is done -- it does not wait for the projectile
+10. The projectile flies through space via `UProjectileMovementComponent`
+11. On hit, the projectile gets the target's ASC and calls `ApplyGameplayEffectSpecToSelf` with the stored spec
+12. The target's `PostGameplayEffectExecute` processes `PendingDamage` -- armor, shields, invulnerability checks -- then applies the final result to Health
+13. The projectile destroys itself
+
+The key insight: the ability and the damage application are temporally and spatially separated. The spec handle bridges that gap, carrying the caster's full context from the moment of casting to the moment of impact.
 
 ## Variations
 
 ### Charge-Up
 
-Hold the input to charge, release to fire. Use the `WaitInputRelease` ability task to detect when the player lets go. Scale the damage magnitude and projectile speed based on charge time. Apply a `State.Charging` tag via Activation Owned Tags to block other abilities during charge.
+Hold the input to charge, release to fire. Use the `WaitInputRelease` ability task to detect when the player lets go. Scale the `DamageAmount` and projectile speed based on charge time. Apply a `State.Charging` tag via Activation Owned Tags to block other abilities during charge. The ability stays active until the player releases, which means End Ability is deferred -- you need to handle interruption (stun during charge) cleanly.
 
 ### Homing Projectile
 
-Set the Projectile Movement Component's `bIsHomingProjectile` to true and assign a `HomingTargetComponent` on the target actor. You can populate the target via a simple line trace from the camera before spawning, or use GAS [Target Actors](../gameplay-abilities/targeting/target-actors.md) for more sophisticated targeting.
+Set the ProjectileMovementComponent's `bIsHomingProjectile` to true and assign a `HomingTargetComponent` on the target actor. Populate the target via a line trace from the camera before spawning, or use GAS [Target Actors](../gameplay-abilities/targeting/target-actors.md) for more sophisticated targeting.
 
 ### Multi-Projectile (Shotgun)
 
-Spawn multiple projectiles in a cone. Loop 5-8 times, each with a slightly randomized rotation offset from the aim direction. Use the same GE spec for all of them — each projectile carries the same damage, and the spec handle can be shared (it's a shared pointer under the hood).
+Spawn multiple projectiles in a cone. Loop 5-8 times, each with a slightly randomized rotation offset from the aim direction. Use the same GE spec handle for all of them -- each projectile carries the same damage, and the spec handle is a shared pointer under the hood, so passing it to multiple actors is safe and efficient.
 
-### Cast Animation
+## Related Pages
 
-Add a `PlayMontageAndWait` before the spawn step. The projectile spawns from an AnimNotify at the right frame in the cast animation (same pattern as [Melee Attack](melee-attack.md)). The ability stays active until the montage completes or is interrupted.
-
-## Related
-
-- [Melee Attack](melee-attack.md) — same damage pipeline, but applied directly instead of via projectile
-- [SetByCaller](../gameplay-effects/set-by-caller.md) — how the damage magnitude system works
-- [Targeting](../gameplay-abilities/targeting/index.md) — more sophisticated aim and target selection
-- [Damage Pipeline](../patterns/damage-pipeline.md) — how PendingDamage flows through to Health
-- [Ability Tasks](../gameplay-abilities/ability-tasks.md) — WaitInputRelease and other tasks for variations
+- [Melee Attack](melee-attack.md) -- same damage pipeline, but applied directly instead of via projectile
+- [Dodge Roll](dodge-roll.md) -- stamina cost, i-frames, root motion montage
+- [SetByCaller](../gameplay-effects/set-by-caller.md) -- how the damage magnitude system works
+- [Targeting](../gameplay-abilities/targeting/index.md) -- more sophisticated aim and target selection
+- [Damage Pipeline](../patterns/damage-pipeline.md) -- how PendingDamage flows through to Health
+- [Ability Tasks](../gameplay-abilities/ability-tasks.md) -- WaitInputRelease and other tasks for variations
+- [Immunity](../gameplay-effects/immunity.md) -- how State.Invulnerable blocks damage at application time

@@ -155,6 +155,44 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+/* -- Example Badges ----------------------------------------------- */
+
+.md-typeset .example-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.md-typeset .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.md-typeset .badge--beginner {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.md-typeset .badge--intermediate {
+  background: rgba(255, 183, 77, 0.15);
+  color: #ffa726;
+  border: 1px solid rgba(255, 183, 77, 0.3);
+}
+
+.md-typeset .badge--advanced {
+  background: rgba(239, 83, 80, 0.15);
+  color: #ef5350;
+  border: 1px solid rgba(239, 83, 80, 0.3);
+}
+
 /* -- Grid Cards (Home Page) --------------------------------------- */
 
 /* Make cards more visually distinct */

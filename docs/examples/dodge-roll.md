@@ -1,187 +1,343 @@
 ---
-title: "Example: Dodge Roll"
 icon: material/run-fast
-description: Complete walkthrough building a dodge roll ability with stamina cost, cooldown, i-frames, montage, and input.
+description: Complete dodge roll ability with stamina cost, cooldown, i-frames via Activation Owned Tags, root motion montage, and ability blocking.
 ---
 
 # Example: Dodge Roll
 
-**Goal:** Build a complete dodge roll ability with:
+<div class="example-badges" markdown>
+  <span class="badge badge--intermediate">Intermediate</span>
+</div>
 
-- Stamina cost (-20)
-- Cooldown (0.5 seconds)
-- I-frames (invulnerability during the roll)
-- Animation montage
-- Input binding
+## Overview
 
-This walks through the full process end-to-end.
+A dodge roll ability that grants invulnerability frames (i-frames) during the animation, costs stamina, and blocks other abilities while rolling. This demonstrates how Activation Owned Tags create temporary character states, how those states integrate with the damage pipeline, and how Activation Blocked Tags prevent re-rolling mid-dodge. The roll uses root motion from the montage for physically grounded movement.
 
----
+## What We're Building
 
-## Step 1: Create the Cost GE
+- **Stamina cost** of 20 per roll
+- **Short cooldown** of 0.5 seconds to prevent roll spam
+- **I-frames** during the entire roll animation via `State.Invulnerable` tag
+- **Root motion movement** -- the dodge distance comes from the animation, not manual velocity
+- **Ability blocking** -- can't attack or re-roll while rolling
+- **CC blocking** -- can't roll while stunned or dead
+- **Tags as state** -- `State.Evading` and `State.Invulnerable` are granted automatically on activation and removed on end
 
-**Asset:** `GE_Cost_Stamina_20`
+## Prerequisites
 
-1. Right-click > Gameplay Effect
-2. **Duration Policy:** Instant
-3. **Modifiers:** Add one modifier:
-    - Attribute: `MyAttributeSet.Stamina`
-    - Modifier Op: `Add (Base)`
-    - Magnitude: `-20` (negative = costs stamina)
+!!! tip "What you need before starting"
+    This example assumes you have completed [Project Setup](../getting-started/project-setup.md) and have:
 
-That's it for the cost. No tags, no cue.
+    - A character with an **Ability System Component**
+    - An **AttributeSet** with Health and Stamina attributes
+    - A **base ability class** (`YourProjectGameplayAbility`) with an `InputTag` property
+    - An **input binding system** that routes Enhanced Input actions to abilities by tag
+    - A **dodge roll animation montage** (`AM_DodgeRoll`) with root motion, set up for your character's skeleton
 
-## Step 2: Create the Cooldown GE
+    If any of that is missing, start with [Project Setup](../getting-started/project-setup.md).
 
-**Asset:** `GE_Cooldown_DodgeRoll`
+## Step 1: Create the Effects
 
-1. Right-click > Gameplay Effect
-2. **Duration Policy:** Has Duration
-3. **Duration Magnitude:** `0.5` (seconds)
-4. **Tags granted to target** (via TargetTagsGameplayEffectComponent):
-    - `Cooldown.Ability.DodgeRoll`
-5. **Asset Tags** (via AssetTagsGameplayEffectComponent):
-    - `Cooldown.Ability.DodgeRoll`
+The dodge roll only needs two effects -- a cost and a cooldown. There is no damage effect because the dodge doesn't deal damage. The i-frame behavior comes entirely from tags, not from a Gameplay Effect.
 
-The cooldown tag is what GAS checks -- while this tag is present, the ability can't activate.
+### GE_Cost_DodgeRoll
 
-## Step 3: Create the Ability Blueprint
+| Setting | Value |
+|:---|:---|
+| **Duration Policy** | Instant |
+| **Modifiers[0] -- Attribute** | `YourProjectAttributeSet.Stamina` |
+| **Modifiers[0] -- Modifier Op** | Add |
+| **Modifiers[0] -- Magnitude** | Scalable Float: `-20.0` |
 
-**Asset:** `GA_DodgeRoll`
+### GE_Cooldown_DodgeRoll
 
-1. Right-click > Blueprint Class > your base ability class
-2. Name: `GA_DodgeRoll`
+| Setting | Value |
+|:---|:---|
+| **Duration Policy** | Has Duration |
+| **Duration Magnitude** | Scalable Float: `0.5` (half a second) |
+| **GrantedTags** | `Cooldown.Evade` |
+
+We use `Cooldown.Evade` rather than `Cooldown.Ability.DodgeRoll` because you might have multiple evasion abilities (dodge, dash, blink) that share a single cooldown. If you want independent cooldowns per evasion type, use more specific tags like `Cooldown.Evade.DodgeRoll`.
+
+## Step 2: Create the Ability
+
+Create a new Blueprint class with **YourProjectGameplayAbility** as the parent. Name it `GA_DodgeRoll`.
 
 ### Class Defaults
 
-| Property | Value |
-|:---|:---|
-| **Ability Tags** | `Ability.Movement.DodgeRoll` |
-| **Activation Blocked Tags** | `CrowdControl.Stun`, `State.Dead`, `State.DodgeRolling` |
-| **Activation Owned Tags** | `State.DodgeRolling`, `State.Invulnerable` |
-| **Block Abilities with Tag** | `Ability.Combat` (can't attack while rolling) |
-| **Instancing Policy** | `InstancedPerActor` |
-| **Net Execution Policy** | `LocalPredicted` |
-| **Cost Gameplay Effect** | `GE_Cost_Stamina_20` |
-| **Cooldown Gameplay Effect** | `GE_Cooldown_DodgeRoll` |
+| Property | Value | Why |
+|:---|:---|:---|
+| **Input Tag** | `InputTag.Movement.Dodge` | Maps to your dodge input |
+| **Ability Tags** | `Ability.Movement.DodgeRoll` | Identifies this ability for queries |
+| **Activation Blocked Tags** | `State.Dead`, `CrowdControl.Hard`, `State.Evading` | Can't roll while dead, stunned, or already rolling |
+| **Activation Owned Tags** | `State.Evading`, `State.Invulnerable` | Granted on activate, removed on end |
+| **Block Abilities With Tag** | `Ability.Combat` | Can't attack mid-roll |
+| **Instancing Policy** | `InstancedPerActor` | Required when using Ability Tasks |
+| **Net Execution Policy** | `LocalPredicted` | Feels responsive on the client |
+| **Cost Gameplay Effect Class** | `GE_Cost_DodgeRoll` | Stamina check and deduction |
+| **Cooldown Gameplay Effect Class** | `GE_Cooldown_DodgeRoll` | 0.5s re-activation delay |
 
-!!! info "Activation Owned Tags for I-frames"
-    `State.Invulnerable` is granted when the ability activates and removed when it ends. Your damage pipeline checks for this tag and skips damage if present. This is the i-frame mechanism. `State.DodgeRolling` blocks re-activation during the roll.
+!!! info "How Activation Owned Tags create i-frames"
+    **Activation Owned Tags** are the core mechanic here. When the ability activates, the ASC automatically grants `State.Evading` and `State.Invulnerable` to the owning actor. When the ability ends (for any reason -- completion, interruption, cancellation), those tags are automatically removed. No manual tag management required.
+
+    `State.Invulnerable` is what your damage pipeline checks. `State.Evading` serves double duty: it blocks re-activation (via Activation Blocked Tags) and can be queried by other systems (animation, UI, AI perception).
+
+!!! warning "State.Evading in Activation Blocked Tags"
+    Notice `State.Evading` appears in both Activation Owned Tags *and* Activation Blocked Tags. This is intentional -- it prevents the player from re-activating the dodge while already dodging. Since Activation Owned Tags are granted before activation checks on subsequent attempts, the second activation sees `State.Evading` and fails. This is the standard "can't re-use while active" pattern.
 
 ### Event Graph
 
-```
-Event ActivateAbility
-  │
-  ├─ Commit Ability
-  │   └─ [Branch: Failed] → End Ability (Cancelled = true)
-  │
-  └─ [Branch: Success]
-      │
-      ├─ Play Montage And Wait
-      │   ├─ Montage: DodgeRoll_Montage
-      │   ├─ Rate: 1.0
-      │   └─ Section: (leave empty for full montage)
-      │
-      ├─ On Completed → End Ability (Cancelled = false)
-      ├─ On Blend Out → End Ability (Cancelled = false)
-      ├─ On Interrupted → End Ability (Cancelled = true)
-      └─ On Cancelled → End Ability (Cancelled = true)
-```
+=== "Blueprint"
+    ```
+    Event ActivateAbility
+        |
+        v
+    Commit Ability
+        |-- [Failed] -------> End Ability (Cancelled = true)
+        |
+        v [Success]
+    Play Montage and Wait (AM_DodgeRoll, Rate: 1.0)
+        |-- On Completed ---------> End Ability (Cancelled = false)
+        |-- On Blend Out ----------> End Ability (Cancelled = false)
+        |-- On Interrupted --------> End Ability (Cancelled = true)
+        +-- On Cancelled ----------> End Ability (Cancelled = true)
+    ```
 
-**Commit Ability** does two things:
+    **Step-by-step breakdown:**
 
-1. Checks if the cost can be paid and the cooldown is ready
-2. Deducts the cost and applies the cooldown
+    1. **ActivateAbility** fires -- at this point, `State.Evading` and `State.Invulnerable` are already granted by Activation Owned Tags
+    2. **Commit Ability** checks cost and cooldown, deducts stamina, applies cooldown. If it fails (not enough stamina, still on cooldown), the ability ends immediately and the tags are removed
+    3. **Play Montage and Wait** plays `AM_DodgeRoll` with root motion. The character moves through space based on the animation
+    4. When the montage completes or is interrupted, **End Ability** is called. Activation Owned Tags (`State.Evading`, `State.Invulnerable`) are automatically removed
 
-If it fails (not enough stamina, still on cooldown), the ability ends immediately.
+=== "C++"
+    ```cpp
+    void UGA_DodgeRoll::ActivateAbility(
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo,
+        const FGameplayEventData* TriggerEventData)
+    {
+        if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+        {
+            EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+            return;
+        }
 
-## Step 4: Set Up the Montage
+        UAbilityTask_PlayMontageAndWait* MontageTask =
+            UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(
+                this,
+                NAME_None,
+                DodgeMontage,  // UPROPERTY: TObjectPtr<UAnimMontage>
+                1.0f);
 
-1. Create or use an existing dodge roll animation montage
-2. Make sure it's set up to play on the appropriate slot (usually FullBody)
-3. Duration should be around 0.5-0.8 seconds for a responsive feel
+        MontageTask->OnCompleted.AddDynamic(
+            this, &UGA_DodgeRoll::OnMontageFinished);
+        MontageTask->OnBlendOut.AddDynamic(
+            this, &UGA_DodgeRoll::OnMontageFinished);
+        MontageTask->OnInterrupted.AddDynamic(
+            this, &UGA_DodgeRoll::OnMontageCancelled);
+        MontageTask->OnCancelled.AddDynamic(
+            this, &UGA_DodgeRoll::OnMontageCancelled);
+        MontageTask->ReadyForActivation();
+    }
 
-Optional: Add anim notifies for:
+    void UGA_DodgeRoll::OnMontageFinished()
+    {
+        EndAbility(
+            CurrentSpecHandle,
+            CurrentActorInfo,
+            CurrentActivationInfo,
+            true, false);
+    }
 
-- A **GameplayCue (Burst)** notify at the moment feet leave the ground for a dust puff
-- A notify to trigger root motion (or use the animation's root motion)
+    void UGA_DodgeRoll::OnMontageCancelled()
+    {
+        EndAbility(
+            CurrentSpecHandle,
+            CurrentActorInfo,
+            CurrentActivationInfo,
+            true, true);
+    }
+    ```
 
-## Step 5: Wire Input
+    The C++ version is straightforward -- the dodge roll is a simple montage-driven ability with no gameplay events or damage application. All the interesting behavior comes from the Class Defaults (Activation Owned Tags, Blocked Tags, Block Abilities With Tag).
 
-Follow the [Bind Ability to Input](bind-ability-to-input.md) recipe:
+!!! danger "Always End Ability"
+    Every code path must call **End Ability**. This is especially critical for the dodge roll because Activation Owned Tags (`State.Invulnerable`) persist as long as the ability is active. A leaked dodge roll ability means permanent invulnerability.
 
-1. **Input Action:** `IA_Dodge` (bool, Pressed trigger)
-2. **Input Mapping Context:** Map to your dodge key (e.g., Space bar, B button)
-3. **InputTag:** `InputTag.Dodge`
-4. **On the ability:** Set InputTag to `InputTag.Dodge`
+### I-Frames: How State.Invulnerable Works in the Damage Pipeline
 
-## Step 6: I-Frame Integration
+The `State.Invulnerable` tag doesn't do anything on its own -- your damage pipeline needs to check for it. There are two approaches:
 
-In your [damage pipeline](../patterns/damage-pipeline.md), check for invulnerability before applying damage:
+=== "PostGameplayEffectExecute Check"
+    The simplest approach. In your AttributeSet's `PostGameplayEffectExecute`, check for the tag before applying damage:
 
-```cpp
-// In PostGameplayEffectExecute or ExecCalc
-UAbilitySystemComponent* TargetASC = Data.Target.GetAbilitySystemComponent();
-if (TargetASC && TargetASC->HasMatchingGameplayTag(
-    FGameplayTag::RequestGameplayTag(TEXT("State.Invulnerable"))))
-{
-    // Skip damage
-    SetIncomingDamage(0.f);
-    return;
-}
-```
+    ```cpp
+    void UYourAttributeSet::PostGameplayEffectExecute(
+        const FGameplayEffectModCallbackData& Data)
+    {
+        // ... other processing ...
 
-Or use the **Immunity system**: create an Infinite GE that the dodge ability applies, which uses the `ImmunityGameplayEffectComponent` to block damage effects. This is cleaner but more setup.
+        if (Data.EvaluatedData.Attribute ==
+            GetPendingDamageAttribute())
+        {
+            UAbilitySystemComponent* TargetASC =
+                Data.Target.AbilityActorInfo->AbilitySystemComponent.Get();
 
-## Step 7: Test
+            if (TargetASC && TargetASC->HasMatchingGameplayTag(
+                FGameplayTag::RequestGameplayTag(
+                    FName("State.Invulnerable"))))
+            {
+                // Target is invulnerable -- zero out the damage
+                SetPendingDamage(0.f);
+                return;
+            }
+
+            // Normal damage processing continues...
+            const float FinalDamage = GetPendingDamage();
+            SetPendingDamage(0.f);
+            SetHealth(FMath::Clamp(
+                GetHealth() - FinalDamage, 0.f, GetMaxHealth()));
+        }
+    }
+    ```
+
+=== "Immunity GE Component"
+    A cleaner approach for production. Create an infinite-duration Gameplay Effect with an `ImmunityGameplayEffectComponent` that blocks damage effects. The dodge ability applies this GE on activation and removes it on end. This is more setup but keeps your damage pipeline free of hardcoded tag checks. See [Immunity](../gameplay-effects/immunity.md) for details.
+
+!!! tip "Which approach to use?"
+    The `PostGameplayEffectExecute` check is simpler and works well for prototyping and small projects. The Immunity GE Component approach is more scalable -- it lets you define immunity rules in data (which tags block which effects) without modifying C++ code. Most shipped games use some form of the immunity system.
+
+## Step 3: Wire Input
+
+### 1. InputAction Asset
+
+Create `IA_Dodge` (right-click > **Input > Input Action**). Set the Value Type to `Digital (Bool)`.
+
+### 2. InputMappingContext
+
+In your `IMC_Default`, add:
+
+- **Input Action:** `IA_Dodge`
+- **Key:** Space bar, B button, or your preferred dodge key
+
+### 3. Route Input to the ASC
+
+=== "Blueprint"
+    In your Character Blueprint's Event Graph:
+
+    1. Add an **Enhanced Input Action** event node for `IA_Dodge`
+    2. From the exec pin, call **Get Ability System Component** on Self
+    3. Iterate activatable abilities and try to activate any whose Input Tag matches `InputTag.Movement.Dodge`
+
+=== "C++"
+    ```cpp
+    // Same pattern as the melee attack input binding,
+    // but matching InputTag.Movement.Dodge instead
+    EnhancedInput->BindAction(
+        DodgeAction,  // UPROPERTY: TObjectPtr<UInputAction>
+        ETriggerEvent::Started,
+        this, &AYourCharacter::OnDodgeInput);
+    ```
+
+See [Input Binding](../gameplay-abilities/input-binding.md) for the full production input routing setup.
+
+### 4. Grant the Ability
+
+Add `GA_DodgeRoll` to your character's **Startup Abilities** array in Class Defaults.
+
+## Step 4: Test
 
 ### Basic Test
 
-1. PIE
-2. Press dodge key → character should play roll animation
+1. Hit Play
+2. Press your dodge key -- character should play the roll animation and move via root motion
 3. Stamina should decrease by 20
-4. Press dodge again immediately → should not activate (cooldown)
-5. Wait 0.5s → dodge should work again
+4. Press dodge again immediately -- should not activate (0.5s cooldown)
+5. Wait 0.5 seconds -- dodge should work again
 
 ### I-Frame Test
 
-1. Set up a damage source (enemy attack or debug command)
+1. Set up a damage source (enemy attack, damage volume, or console command)
 2. Time the damage to hit during the roll
-3. Verify no damage is taken during the roll
-4. Verify damage works normally outside the roll
+3. Verify no damage is taken during the roll (`State.Invulnerable` is present)
+4. Verify damage works normally before and after the roll
+
+### ShowDebug Checklist
+
+Open the console and type `showdebug abilitysystem`:
+
+| Scenario | Expected Result |
+|:---|:---|
+| Press dodge with 20+ Stamina | Montage plays, Stamina drops by 20, `State.Evading` + `State.Invulnerable` appear in tags, `Cooldown.Evade` appears |
+| Press dodge with < 20 Stamina | Nothing happens -- Commit Ability fails cost check |
+| Press dodge during cooldown | Nothing happens -- cooldown tag blocks |
+| Press dodge while already rolling | Nothing happens -- `State.Evading` in Activation Blocked Tags |
+| Press attack during roll | Nothing happens -- `Ability.Combat` blocked by Block Abilities With Tag |
+| Damage hits during roll | No health change -- `State.Invulnerable` present |
+| Roll ends | `State.Evading` and `State.Invulnerable` disappear from tags |
+| Press dodge while stunned (`CrowdControl.Hard`) | Nothing happens -- blocked by Activation Blocked Tags |
 
 ### Edge Cases
 
-- Dodge at 0 stamina → should fail (Commit Ability returns false)
-- Dodge while stunned → should fail (Activation Blocked Tags)
-- Dodge while already dodging → should fail (`State.DodgeRolling` in blocked tags)
-- Network test: dodge on client, verify prediction feels responsive
+- **Dodge at exactly 20 stamina** -- should succeed (cost check is `>=`, not `>`)
+- **Interrupted by a force (knockback)** -- montage interrupted, ability ends, tags removed, character is no longer invulnerable
+- **Network: dodge on client** -- prediction should make the roll feel immediate. If the server rejects (out of stamina due to a race), the client rolls back
 
-## Full Assembly Diagram
+!!! warning "Nothing happening?"
+    Common issues:
 
-```
-Player presses Dodge key
-  │
-  ▼
-Input System: IA_Dodge → InputTag.Dodge → ASC looks for matching ability
-  │
-  ▼
-GA_DodgeRoll.ActivateAbility()
-  ├─ Check: Activation Blocked Tags (stun? dead? already rolling?)
-  ├─ Commit: GE_Cost_Stamina_20 applied (instant, -20 stamina)
-  ├─ Commit: GE_Cooldown_DodgeRoll applied (0.5s duration)
-  ├─ Tags granted: State.DodgeRolling, State.Invulnerable
-  ├─ Play DodgeRoll_Montage
-  │   ├─ [Frame 5] AnimNotify: GameplayCue.Movement.DodgeDust
-  │   └─ [Montage ends]
-  ├─ Tags removed: State.DodgeRolling, State.Invulnerable
-  └─ End Ability
-```
+    1. **No root motion movement** -- make sure `bEnableRootMotion` is true on the montage and your Character Movement Component is configured to accept root motion
+    2. **Permanent invulnerability** -- End Ability is not being called on all paths. Check that every montage delegate leads to End Ability
+    3. **Can still attack during roll** -- verify `Block Abilities With Tag` includes `Ability.Combat` and that your combat abilities have `Ability.Combat` in their Ability Tags
+    4. **Stamina not deducting** -- make sure `GE_Cost_DodgeRoll` is assigned to the Cost Gameplay Effect Class property
 
-## Related
+!!! tip "Connecting to UI"
+    Show a cooldown sweep on the dodge icon, or flash the stamina bar when cost is deducted. See [Connecting GAS to UI](../patterns/gas-to-ui.md) for reactive UI patterns that listen to GAS events instead of polling.
 
-- [Common Abilities](../patterns/common-abilities.md) -- more ability patterns
-- [Cooldowns and Costs](../gameplay-effects/cooldowns-and-costs.md) -- cost/cooldown deep dive
+## The Full Flow
+
+Here's what happens from button press to roll completion:
+
+1. **Input** fires `IA_Dodge`
+2. Input handler finds abilities with `InputTag.Movement.Dodge` and calls `TryActivateAbility`
+3. The ASC checks activation requirements:
+    - Blocked tags: Does the owner have `State.Dead`, `CrowdControl.Hard`, or `State.Evading`?
+4. If checks pass, the ability **activates**:
+    - **Activation Owned Tags** are granted immediately: `State.Evading`, `State.Invulnerable`
+    - `ActivateAbility` fires
+5. `CommitAbility` checks cost and cooldown:
+    - Cost: Do we have 20+ Stamina? If yes, apply `GE_Cost_DodgeRoll` (Stamina -20)
+    - Cooldown: Apply `GE_Cooldown_DodgeRoll` (tag granted for 0.5 seconds)
+    - If commit fails, End Ability is called immediately (tags are removed)
+6. **Play Montage and Wait** starts `AM_DodgeRoll` with root motion. The character physically moves through space
+7. During the roll, `State.Invulnerable` is on the ASC. Any incoming damage that checks this tag is zeroed out
+8. During the roll, `Block Abilities With Tag: Ability.Combat` prevents combat abilities from activating
+9. The montage completes. **End Ability** is called
+10. Activation Owned Tags (`State.Evading`, `State.Invulnerable`) are automatically removed
+11. After 0.5 seconds, the cooldown effect expires and `Cooldown.Evade` tag is removed. The dodge is available again
+
+## Variations
+
+### Directional Dodge
+
+Instead of always rolling forward, use the player's movement input to determine roll direction. Before playing the montage, read the character's last movement input vector and select a directional montage section (`Forward`, `Back`, `Left`, `Right`). Pass the section name to `PlayMontageAndWait` via the `StartSection` parameter.
+
+### Dash (No Animation)
+
+Replace the montage with a `LaunchCharacter` or direct velocity override. Use a short `WaitDelay` task (0.3 seconds) to control the i-frame duration. This is faster to set up and works well for top-down games where you don't need a roll animation.
+
+### Dodge with Stamina Regeneration Pause
+
+Add a second Gameplay Effect -- `GE_StaminaRegenPause` -- with a duration of 1.5 seconds that applies a modifier blocking stamina regeneration. Apply it alongside the cost in `ActivateAbility` (after CommitAbility succeeds). This prevents the "dodge spam + regen" loop that trivializes stamina management.
+
+## Related Pages
+
+- [Melee Attack](melee-attack.md) -- montage-driven ability with damage application
+- [Ranged Attack](ranged-attack.md) -- projectile spawning, passing GE specs to actors
 - [Ability Tasks](../gameplay-abilities/ability-tasks.md) -- PlayMontageAndWait details
-- [Damage Pipeline](../patterns/damage-pipeline.md) -- where i-frames are checked
+- [Cooldowns and Costs](../gameplay-effects/cooldowns-and-costs.md) -- cost/cooldown deep dive
+- [Immunity](../gameplay-effects/immunity.md) -- the GE Component approach to i-frames
+- [Damage Pipeline](../patterns/damage-pipeline.md) -- where invulnerability is checked
+- [Tag Architecture](../patterns/tag-design.md) -- designing State.* and CrowdControl.* tags

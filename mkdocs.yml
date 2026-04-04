@@ -167,6 +167,7 @@ nav:
       - Common Abilities: patterns/common-abilities.md
       - Damage Pipeline: patterns/damage-pipeline.md
       - Buff/Debuff System: patterns/buff-debuff-system.md
+      - Connecting GAS to UI: patterns/gas-to-ui.md
       - Tag Architecture: patterns/tag-design.md
       - C++ vs Blueprint: patterns/cpp-vs-blueprint.md
       - Naming Conventions: patterns/naming-conventions.md
@@ -181,10 +182,13 @@ nav:
 
   - Examples:
     - examples/index.md
-    - Jump: examples/jump.md
-    - Melee Attack: examples/melee-attack.md
+    - Sprint Toggle: examples/sprint.md
     - Dodge Roll: examples/dodge-roll.md
+    - Melee Attack: examples/melee-attack.md
     - Ranged Attack: examples/ranged-attack.md
+    - Passive Aura: examples/passive-aura.md
+    - Custom Damage Calculation: examples/exec-calc-damage.md
+    - Network-Predicted Ability: examples/predicted-ability.md
 
   - Debug & Optimize:
     - Debugging:
