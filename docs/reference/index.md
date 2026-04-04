@@ -18,3 +18,4 @@ Quick-access reference material for the Gameplay Ability System. These pages are
 | [Glossary](glossary.md) | Alphabetical definitions of every GAS-specific term |
 | [Acronyms](acronyms.md) | Quick-reference table of all GAS abbreviations |
 | [Resources](resources.md) | Curated external links — official docs, community guides, videos, and sample projects |
+| [Blueprint Function Library](blueprint-library.md) | Every Blueprint-callable GAS function — ability management, effect application, tag queries |

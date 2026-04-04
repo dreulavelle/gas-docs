@@ -130,3 +130,8 @@ Alphabetical definitions of GAS-specific terms. For acronym expansions, see [Acr
 
 **Target Data**
 :   `FGameplayAbilityTargetData` — polymorphic struct carrying targeting results (hit results, actor lists, locations). Replicated from client to server for confirmed targeting. See [Target Data](../gameplay-abilities/targeting/target-data.md).
+
+## Related Pages
+
+- [Acronyms](acronyms.md) -- quick-reference table of GAS abbreviations (ASC, GE, GA, etc.)
+- [Getting Started](../getting-started/index.md) -- recommended starting point for newcomers to GAS

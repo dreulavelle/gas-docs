@@ -93,6 +93,7 @@ Pick the symptom that matches your situation:
 | **Gameplay Debugger** | Inspecting any actor in the world (not just the player) | [Details](gameplay-debugger.md) |
 | **Output Log** | Activation failures, missing SetByCaller, tag warnings | [Details](logging.md) |
 | **Troubleshooting FAQ** | Specific symptoms with known causes and fixes | [Details](troubleshooting.md) |
+| **Testing GAS** | Automated testing patterns for abilities and effects | [Details](testing-gas.md) |
 
 ## Quick Console Commands
 

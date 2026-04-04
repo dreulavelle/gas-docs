@@ -128,6 +128,9 @@ nav:
       - Cooldowns and Costs: gameplay-effects/cooldowns-and-costs.md
       - SetByCaller: gameplay-effects/set-by-caller.md
       - Dynamic Effects: gameplay-effects/dynamic-effects.md
+      - Effect UI Data: gameplay-effects/ui-data.md
+      - Custom Application: gameplay-effects/custom-application.md
+      - Effect Extensions (Legacy): gameplay-effects/effect-extensions.md
 
     - Gameplay Abilities:
       - gameplay-abilities/index.md
@@ -149,6 +152,7 @@ nav:
       - Cue Notify Types: gameplay-cues/cue-types.md
       - Cue Parameters: gameplay-cues/cue-parameters.md
       - Cue Manager: gameplay-cues/cue-manager.md
+      - Cue Translator: gameplay-cues/cue-translator.md
       - AnimNotify and Sequencer: gameplay-cues/anim-notify-and-sequencer.md
 
     - Networking:
@@ -197,6 +201,7 @@ nav:
       - Gameplay Debugger: debugging/gameplay-debugger.md
       - Logging: debugging/logging.md
       - Troubleshooting: debugging/troubleshooting.md
+      - Testing GAS: debugging/testing-gas.md
 
     - Optimization:
       - optimization/index.md
@@ -208,6 +213,7 @@ nav:
   - Reference:
     - reference/index.md
     - AbilitySystemGlobals: reference/ability-system-globals.md
+    - Blueprint Function Library: reference/blueprint-library.md
     - Ability Task Catalog: reference/ability-task-catalog.md
     - GE Component Catalog: reference/ge-component-catalog.md
     - Modifier Formula: reference/modifier-formula.md

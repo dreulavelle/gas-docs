@@ -226,3 +226,9 @@ This is the `WarnIfNotFound` parameter at work. The default behavior:
 
 !!! note "SetByCaller vs. Effect Context"
     SetByCaller is for **numeric magnitudes**. If you need to pass non-numeric data (actors, hit results, arbitrary objects), use the `FGameplayEffectContext` instead. See [Dynamic Effects](dynamic-effects.md) for more on effect context.
+
+## Related Pages
+
+- [Cooldowns and Costs](cooldowns-and-costs.md) -- using SetByCaller for dynamic cooldown durations and resource costs
+- [Dynamic Effects](dynamic-effects.md) -- the full spec modification workflow that SetByCaller is part of
+- [Melee Attack Example](../examples/melee-attack.md) -- practical SetByCaller usage for passing weapon damage into a GE

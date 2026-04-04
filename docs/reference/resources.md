@@ -54,3 +54,7 @@ C:\Program Files\Epic Games\UE_5.7\Engine\Plugins\Runtime\GameplayAbilities\
 ```
 
 Replace `UE_5.7` with your engine version.
+
+## Related Pages
+
+- [Getting Started](../getting-started/index.md) -- the recommended starting point for newcomers following these resources

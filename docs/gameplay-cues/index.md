@@ -26,6 +26,10 @@ Every cue receives an `FGameplayCueParameters` struct with context about what tr
 
 The `UGameplayCueManager` is the routing backbone. It decides which cue notify to invoke, handles async loading, manages the actor recycle pool, and supports batching. Learn how to configure scan paths, preload assets, use the `GameplayCueTranslator`, and override the manager for custom routing.
 
+### [Cue Translator](cue-translator.md)
+
+Dynamic cue tag remapping — show different VFX based on weapon type or context without separate cue assets.
+
 ### [AnimNotify and Sequencer](anim-notify-and-sequencer.md)
 
 Cues can be triggered from Animation Montages and Level Sequences, not just from Effects and Abilities. This page covers `UAnimNotify_GameplayCue`, `UAnimNotify_GameplayCueState`, and the Sequencer gameplay cue track/sections.

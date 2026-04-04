@@ -204,3 +204,9 @@ SetByCaller is covered extensively in its [own page](set-by-caller.md).
 
 !!! tip "Start Simple"
     Most effects in a typical project use ScalableFloat or SetByCaller. Don't reach for CustomCalculationClass until you actually need it — the simpler options are easier to debug and maintain.
+
+## Related Pages
+
+- [Execution Calculations](execution-calculations.md) -- when you need multi-attribute, multi-output formulas instead of a single magnitude
+- [Modifiers](modifiers.md) -- how magnitude values are applied to attributes via the modifier pipeline
+- [Scalable Floats](../reference/scalable-float.md) -- deep dive into FScalableFloat and curve table configuration

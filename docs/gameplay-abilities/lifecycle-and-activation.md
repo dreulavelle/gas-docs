@@ -383,3 +383,9 @@ void UGA_Fireball::OnMontageCancelled()
 ```
 
 Note how every delegate output path from the montage task leads to `EndAbility`. This is the pattern you should follow.
+
+## Related Pages
+
+- [Cooldowns and Costs](../gameplay-effects/cooldowns-and-costs.md) -- how CommitAbility applies cooldown and cost GEs
+- [Instancing Policy](instancing-policy.md) -- how the chosen policy affects state management across activations
+- [Ability Tasks](ability-tasks.md) -- the async building blocks used inside ActivateAbility

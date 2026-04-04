@@ -170,3 +170,9 @@ Want a stun to override a slow, but not vice versa?
 1. Stun grants `CC.Stun` and `CC.Any`
 2. Slow has ongoing requirement: `IgnoreTags: CC.Stun` — it inhibits when stunned
 3. Both grant `CC.Any` so abilities can check for "any CC active"
+
+## Related Pages
+
+- [Immunity](immunity.md) -- blocking effects based on the target's active immunity queries
+- [Custom Application Requirements](custom-application.md) -- C++ logic for application checks beyond tag matching
+- [GE Components](ge-components.md) -- the component classes that implement each tag role described here

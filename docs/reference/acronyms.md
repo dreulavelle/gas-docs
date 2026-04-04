@@ -4,7 +4,7 @@ icon: material/alphabetical-variant
 
 # Acronyms
 
-Quick-reference table of abbreviations used throughout GAS documentation and source code.
+Quick-reference table of abbreviations used throughout GAS documentation and source code. For full definitions of these terms, see the [Glossary](glossary.md).
 
 ## GAS Acronyms
 

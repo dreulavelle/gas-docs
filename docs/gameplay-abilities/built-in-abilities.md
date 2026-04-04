@@ -189,3 +189,9 @@ void UGA_MontageWithEffects::OnFinished()
 ```
 
 This approach uses `InstancedPerActor`, the `PlayMontageAndWait` task, and member variables — all things that the original NonInstanced version could not do.
+
+## Related Pages
+
+- [Lifecycle and Activation](lifecycle-and-activation.md) -- the full activation, commit, and end flow these built-in abilities demonstrate
+- [Your First Ability](../getting-started/your-first-ability.md) -- step-by-step tutorial for creating a custom ability from scratch
+- [Instancing Policy](instancing-policy.md) -- why NonInstanced is deprecated and InstancedPerActor is the modern default

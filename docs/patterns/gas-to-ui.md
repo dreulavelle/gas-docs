@@ -732,3 +732,4 @@ Your health bar shows `Health / MaxHealth`. You listen for Health changes -- gre
 - [Cooldowns and Costs](../gameplay-effects/cooldowns-and-costs.md) -- how the cooldown system works under the hood
 - [Buff/Debuff System](buff-debuff-system.md) -- tag categories, stacking, UI representation
 - [Tag Architecture](tag-design.md) -- designing your tag hierarchy for clean UI bindings
+- [UI Data](../gameplay-effects/ui-data.md) -- effect display names, descriptions, and icons for UI

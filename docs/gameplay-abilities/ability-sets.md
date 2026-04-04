@@ -294,3 +294,9 @@ public:
 ```
 
 This approach (used by Lyra and other Epic samples) groups abilities with their input tags and can also grant effects and attribute sets as a cohesive "character kit" or "equipment loadout."
+
+## Related Pages
+
+- [Lifecycle and Activation](lifecycle-and-activation.md) -- the activation flow that runs after an ability is granted
+- [Input Binding](input-binding.md) -- connecting granted abilities to player input via tags or InputID
+- [Project Setup](../getting-started/project-setup.md) -- initial ASC setup where default abilities are first granted

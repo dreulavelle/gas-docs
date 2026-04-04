@@ -55,6 +55,14 @@ The comprehensive guide to Unreal Engine's Gameplay Ability System. Every class,
 
     [:octicons-arrow-right-24: Patterns](patterns/index.md) &middot; [:octicons-arrow-right-24: Recipes](recipes/index.md)
 
+-   :material-book-open-page-variant:{ .lg .middle } **Examples**
+
+    ---
+
+    Complete worked examples from beginner to advanced. Sprint, melee, dodge roll, ranged, passive aura, and C++-only ExecCalc and prediction examples.
+
+    [:octicons-arrow-right-24: Examples](examples/index.md)
+
 -   :material-bug:{ .lg .middle } **Debug & Optimize**
 
     ---

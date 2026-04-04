@@ -140,3 +140,8 @@ All async tasks live in `Engine/Plugins/Runtime/GameplayAbilities/Source/Gamepla
 
 !!! tip "When to use Async vs. regular tasks"
     Use `UAbilityAsync` when you need to monitor GAS state from outside an ability — for example, updating a health bar widget when an attribute changes. Use `UAbilityTask` when the monitoring is part of ability logic and should end when the ability ends.
+
+## Related Pages
+
+- [Ability Tasks](../gameplay-abilities/ability-tasks.md) -- concepts, lifecycle, the factory pattern, and how to write custom tasks
+- [Async Ability Tasks](../gameplay-abilities/async-ability-tasks.md) -- UAbilityAsync tasks for use outside of abilities

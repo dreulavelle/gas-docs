@@ -206,3 +206,9 @@ Here is how reticles and filters connect to the [target actor](target-actors.md)
 4. On confirm, the final target data has already been filtered — only valid targets are included.
 
 The filter applies at two levels: during the visual feedback phase (showing valid/invalid on the reticle) and during the final data production (only including targets that pass).
+
+## Related Pages
+
+- [Target Actors](target-actors.md) -- the targeting actors that spawn reticles and apply filters
+- [Target Data](target-data.md) -- the payload format produced after filtering is complete
+- [Targeting Overview](index.md) -- how reticles and filters fit into the full targeting flow

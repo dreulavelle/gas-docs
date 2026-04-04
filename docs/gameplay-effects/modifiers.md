@@ -210,6 +210,208 @@ But an Instant AddBase +50:
 
 When an effect stacks (see [Stacking](stacking.md)), the modifier magnitude can optionally be multiplied by the stack count. This is controlled by the `bFactorInStackCount` property on each `FGameplayModifierInfo` (per modifier, not per effect).
 
+## Attribute Capture Definitions
+
+When Execution Calculations or Modifier Magnitude Calculations need to read attribute values to compute their results, they must declare **capture definitions** -- formal declarations of which attributes they need, from whom, and whether to snapshot the value.
+
+This is covered in full detail in [Execution Calculations > Attribute Capture](execution-calculations.md#attribute-capture), including:
+
+- The `DECLARE_ATTRIBUTE_CAPTUREDEF` / `DEFINE_ATTRIBUTE_CAPTUREDEF` macros
+- Source vs. Target capture
+- Snapshot vs. Live evaluation
+- Registering captures via `RelevantAttributesToCapture`
+- Common gotchas (wrong source, missing registration)
+
+The short version: every attribute a calculation reads must be explicitly declared as a `FGameplayEffectAttributeCaptureDefinition`. This struct specifies three things:
+
+```cpp
+struct FGameplayEffectAttributeCaptureDefinition
+{
+    FGameplayAttribute AttributeToCapture;  // Which attribute
+    EGameplayEffectAttributeCaptureSource AttributeSource;  // Source or Target
+    bool bSnapshot;  // Freeze at spec creation, or read live at execution
+};
+```
+
+If a calculation tries to read an attribute it didn't register in `RelevantAttributesToCapture`, the capture will silently fail and return a default value. This is one of the most common sources of "my ExecCalc always outputs zero" bugs.
+
+## Aggregator Internals
+
+Everything above describes what modifiers do from the outside. This section peels back the layer and explains how modifiers actually work inside the engine. Understanding aggregators isn't required for normal development, but it's essential for debugging modifier behavior that doesn't match your expectations.
+
+### What the Aggregator Is
+
+Every attribute that has active modifiers gets an `FAggregator`. The aggregator is the internal object that collects all modifiers targeting a single attribute, stores them organized by operation type and evaluation channel, and computes the final attribute value on demand.
+
+When you apply a duration effect with an Additive +20 modifier on Health, the engine doesn't change the Health value directly. Instead, it adds a `FAggregatorMod` entry to the Health attribute's `FAggregator`. When the engine needs the current value of Health, it evaluates the aggregator: start with the base value, run through all qualified mods in order, and produce the result.
+
+```
+Base Value (100)
+    │
+    └─ FAggregator
+        ├─ Channel 0
+        │   ├─ AddBase mods:        [+20 from Strength Buff, +10 from Rune]
+        │   ├─ MultiplyAdditive:    [1.5 from War Shout]
+        │   ├─ DivideAdditive:      []
+        │   ├─ MultiplyCompound:    [1.1 from Enchantment]
+        │   ├─ AddFinal:            [+15 from Rune Bonus]
+        │   └─ Override:            []
+        │
+        └─ Result: computed via the aggregation formula
+```
+
+### How Evaluation Works
+
+Aggregator evaluation is **lazy**. The aggregator doesn't recompute the final value every time a mod is added or removed. Instead, it marks itself as **dirty** and broadcasts `OnDirty` to any listeners (including the `FActiveGameplayEffectsContainer` that owns the attribute). The actual evaluation happens when something asks for the current attribute value.
+
+The evaluation flow:
+
+1. `FAggregator::Evaluate(Parameters)` is called
+2. For each mod in each channel, `FAggregatorMod::UpdateQualifies(Parameters)` checks whether the mod's source/target tag requirements are met
+3. Only qualified mods participate in the aggregation formula
+4. The result is computed channel by channel using `EvaluateWithBase`
+5. The output of one channel becomes the input base value for the next channel
+
+### FScopedAggregatorOnDirtyBatch
+
+The engine batches dirty notifications to avoid cascading recalculations. When multiple mods change in the same frame (common during effect application or removal), `FScopedAggregatorOnDirtyBatch` delays all `OnDirty` callbacks until the batch scope exits:
+
+```cpp
+{
+    FScopedAggregatorOnDirtyBatch ScopedBatch;
+    // Add/remove multiple mods -- no callbacks fire yet
+    Aggregator1.AddMod(...);
+    Aggregator2.RemoveAggregatorMod(...);
+    Aggregator3.AddMod(...);
+} // All dirty aggregators fire their callbacks here
+```
+
+This is an important implementation detail if you're debugging why an attribute value seems "stale" during effect processing -- it might be inside a batch scope.
+
+### FAggregatorMod
+
+Each individual modifier entry stored in an aggregator:
+
+```cpp
+struct FAggregatorMod
+{
+    const FGameplayTagRequirements* SourceTagReqs;  // Source must match these
+    const FGameplayTagRequirements* TargetTagReqs;  // Target must match these
+    float EvaluatedMagnitude;     // The modifier's magnitude
+    float StackCount;             // Stack multiplier
+    FActiveGameplayEffectHandle ActiveHandle;  // The GE that owns this mod
+    bool IsPredicted;             // Whether this is a predicted mod
+
+    bool Qualifies() const;       // Does this mod pass tag checks?
+    void UpdateQualifies(const FAggregatorEvaluateParameters& Params) const;
+};
+```
+
+The `Qualifies()` check is what makes per-modifier tag requirements work. During evaluation, mods that don't qualify are skipped entirely -- they contribute nothing to the final value.
+
+### FAggregatorEvaluateParameters
+
+The context passed into evaluation, controlling which mods qualify:
+
+```cpp
+struct FAggregatorEvaluateParameters
+{
+    const FGameplayTagContainer* SourceTags;  // Current source tags
+    const FGameplayTagContainer* TargetTags;  // Current target tags
+
+    // Ignore specific active effects during evaluation
+    TArray<FActiveGameplayEffectHandle> IgnoreHandles;
+
+    // Additional tag filters (mod's source/target tags must match ALL)
+    FGameplayTagContainer AppliedSourceTagFilter;
+    FGameplayTagContainer AppliedTargetTagFilter;
+
+    bool IncludePredictiveMods;  // Whether to include predicted mods
+};
+```
+
+This is how the engine implements tag-filtered evaluation. When you set `SourceTags` and `TargetTags`, each mod's tag requirements are checked against them. If a mod requires `State.Enraged` on the source but the source doesn't have that tag, the mod is disqualified for this evaluation.
+
+### OnAttributeAggregatorCreated
+
+When an aggregator is first created for an attribute (the first time a duration/infinite effect targets that attribute), the engine calls `UAttributeSet::OnAttributeAggregatorCreated`:
+
+```cpp
+// In your attribute set
+virtual void OnAttributeAggregatorCreated(
+    const FGameplayAttribute& Attribute,
+    FAggregator* NewAggregator) const override
+{
+    if (Attribute == GetHealthAttribute())
+    {
+        // Set custom evaluation metadata for Health
+        NewAggregator->EvaluationMetaData =
+            &FAggregatorEvaluateMetaDataLibrary::MostNegativeMod_AllPositiveMods;
+    }
+}
+```
+
+This callback lets you attach custom evaluation rules to specific attributes. The engine ships one pre-built metadata rule:
+
+- **`MostNegativeMod_AllPositiveMods`** -- Only the single most negative modifier counts, but all positive modifiers stack normally. This is useful for "most-negative-debuff-only" rules where you don't want multiple damage-reducing debuffs to stack.
+
+You can also provide your own `FAggregatorEvaluateMetaData` with a custom `FCustomQualifiesFunc` lambda that runs during evaluation and toggles individual mod qualifications.
+
+### Evaluation Channels (Channel0 through Channel9)
+
+Evaluation channels let you segment modifier evaluation into independent layers. Each channel has its own set of mods organized by operation type, and the channels evaluate in order -- the output of Channel0 becomes the base value input for Channel1, and so on.
+
+```
+Base Value: 100
+
+Channel 0: has AddBase +20 mod
+  → Channel 0 result: 120
+
+Channel 1: has MultiplyCompound 1.5 mod
+  → Channel 1 input: 120 (output of Channel 0)
+  → Channel 1 result: 180
+
+Final Value: 180
+```
+
+The engine supports channels 0 through 9 (defined by `EGameplayModEvaluationChannel`), but only channels that actually have mods incur any cost. The channel map is sparse -- unused channels don't exist.
+
+**When you'd use multiple channels:**
+
+- **Layered stat systems.** Base stats computed in Channel 0, buff/debuff layer in Channel 1, final multipliers in Channel 2. This guarantees that buffs always see the fully-computed base stats, not intermediate values.
+- **Ordered evaluation.** When one modifier needs to operate on the result of another modifier, but they're applied by different systems that can't coordinate ordering.
+
+Most projects use only Channel 0 and never think about channels. They're a power tool for edge cases.
+
+!!! note "Channel Configuration"
+    Channels are hidden in the editor by default. To enable and name them, override `UAbilitySystemGlobals` and configure the channel names. See [AbilitySystemGlobals](../reference/ability-system-globals.md) for details.
+
+### Aggregator Snapshots
+
+The `TakeSnapshotOf` method creates a copy of an aggregator's state at a point in time. This is used internally for snapshotted attribute captures in Execution Calculations -- the ExecCalc gets a frozen copy of the aggregator rather than a live reference.
+
+### Why This Matters for Debugging
+
+When a modifier "isn't working," the problem is usually one of:
+
+1. **Tag filtering.** The mod exists in the aggregator but doesn't qualify because the source or target tags don't match its requirements. Use `showdebug abilitysystem` to check active tags.
+
+2. **Wrong channel.** The mod is in a different evaluation channel than expected. If another effect in a higher channel is overriding the value, your mod's contribution gets masked.
+
+3. **Stale evaluation.** Inside a `FScopedAggregatorOnDirtyBatch`, attribute values haven't been recomputed yet. If you're checking a value during effect application, you might be reading a stale result.
+
+4. **Prediction filtering.** `IncludePredictiveMods` is false, and the mod is predicted. On the server, predicted mods may not be included in evaluation until confirmed.
+
+5. **Ignored handles.** Some evaluation contexts explicitly ignore certain active effect handles. The mod exists but is being skipped.
+
+6. **Custom qualifies function.** If `OnAttributeAggregatorCreated` set custom `EvaluationMetaData`, the custom function might be disqualifying your mod.
+
+To inspect an aggregator's state at runtime, the `showdebug abilitysystem` display shows active effects and their modifiers. For deeper inspection, you can set a breakpoint in `FAggregatorModChannel::EvaluateWithBase` and inspect the mods array and their qualification states.
+
 ## What's Next?
 
 Now that you know what operations a modifier can perform, the next question is: where does the magnitude number come from? That's [Magnitude Calculations](magnitude-calculations.md).
+
+## Related Pages
+
+- [Modifier Formula](../reference/modifier-formula.md) -- the exact aggregation formula with worked examples and edge cases
