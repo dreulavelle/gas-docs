@@ -374,9 +374,18 @@
 
 /* -- Mermaid Diagrams --------------------------------------------- */
 
-/* Better diagram styling in dark mode */
-[data-md-color-scheme="slate"] .mermaid {
+/* Shared */
+.mermaid {
   --mermaid-font-family: Inter, sans-serif;
+}
+
+/* Mermaid renders inside a closed Shadow DOM, so external CSS
+   can't target elements directly. But CSS custom properties DO
+   inherit across shadow boundaries. The theme uses
+   --md-mermaid-label-fg-color for node text — override it to
+   white so it works on our colored node backgrounds. */
+.mermaid {
+  --md-mermaid-label-fg-color: #fff;
 }
 
 /* -- Print Styles ------------------------------------------------- */

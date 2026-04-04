@@ -406,32 +406,20 @@ Watch the target's attributes panel. When the damage effect is applied, you'll s
 
 ## The Full Flow
 
-```
-Ability applies GE_Damage_ExecCalc to target
-  |
-  v
-GAS sees the effect has an Execution Calculation
-  |
-  v
-GAS captures attributes from source and target ASCs
-  +-- Source: BaseDamage (snapshot), CritChance (snapshot), CritMult (snapshot)
-  +-- Target: Armor (live value at execution time)
-  |
-  v
-UExecCalc_Damage::Execute_Implementation() is called
-  +-- Read captured attribute magnitudes
-  +-- Read BonusDamage from SetByCaller on the spec
-  +-- Roll for crit
-  +-- Read damage type tag from effect's asset tags
-  +-- Look up matching resistance on target
-  +-- Compute: ((Base + Bonus) * CritMult - Armor) * (1 - Resistance)
-  +-- Output modifier: PendingDamage += FinalDamage
-  |
-  v
-GAS applies the output modifier to the target's PendingDamage
-  |
-  v
-PostGameplayEffectExecute processes PendingDamage -> Health
+```mermaid
+flowchart LR
+    A["Ability applies\nGE_Damage_ExecCalc"]:::event --> B["GAS captures\nattributes"]:::func
+    B --> C["Execute_Implementation()"]:::func
+    C --> D["Read attributes\n+ SetByCaller"]:::func
+    D --> E["Crit roll +\nResistance lookup"]:::branch
+    E --> F["Compute formula\n(Base+Bonus)*Crit - Armor\n* (1-Resistance)"]:::func
+    F --> G["Output modifier\nPendingDamage += Final"]:::func
+    G --> H["PostGameplayEffectExecute\nPendingDamage -> Health"]:::endpoint
+
+    classDef event fill:#5c1a1a,stroke:#ff6666,color:#fff
+    classDef func fill:#2a2a4a,stroke:#9b89f5,color:#fff
+    classDef branch fill:#5c4a1a,stroke:#ffb84a,color:#fff
+    classDef endpoint fill:#1a4a2d,stroke:#6bcb3a,color:#fff
 ```
 
 ---

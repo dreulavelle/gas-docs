@@ -101,29 +101,36 @@ Create a new Blueprint class with your `YourProjectGameplayAbility` as the paren
 ### Event Graph
 
 === "Blueprint"
-    ```
-    Event ActivateAbility
-        |
-        +-- Apply GE to Self (GE_Sprint_SpeedBuff)
-        |     \-- Store Handle -> SpeedBuffHandle (variable)
-        |
-        +-- Apply GE to Self (GE_Sprint_StaminaDrain)
-        |     \-- Store Handle -> StaminaDrainHandle (variable)
-        |
-        +-- Wait Input Release (bTestAlreadyReleased = false)
-        |     \-- On Release -> [Go to Deactivate]
-        |
-        +-- Wait for Attribute Change Threshold
-        |     +-- Attribute: YourProjectAttributeSet.Stamina
-        |     +-- Comparison: LessThanOrEqual
-        |     +-- Value: 0.0
-        |     +-- bTriggerOnce: true
-        |     \-- On Change (bMatchesComparison = true) -> [Go to Deactivate]
-        |
-        [Deactivate]:
-        +-- Remove Active GE (SpeedBuffHandle)
-        +-- Remove Active GE (StaminaDrainHandle)
-        \-- End Ability (Cancelled = false)
+
+    !!! abstract "Event Graph"
+
+        1. **ActivateAbility** fires
+        2. **Apply GE to Self** — `GE_Sprint_SpeedBuff` → store handle as `SpeedBuffHandle`
+        3. **Apply GE to Self** — `GE_Sprint_StaminaDrain` → store handle as `StaminaDrainHandle`
+        4. Two tasks run **simultaneously** (the "race" pattern):
+
+            - **Wait Input Release** — fires when the player lets go of sprint
+            - **Wait Attribute Change Threshold** — fires when `Stamina <= 0`
+
+        5. **Whichever fires first** triggers cleanup:
+
+            - Remove Active GE (`SpeedBuffHandle`)
+            - Remove Active GE (`StaminaDrainHandle`)
+            - **EndAbility** (success)
+
+    ```mermaid
+    flowchart LR
+        A["ActivateAbility"]:::event --> B["Apply GE\nSpeedBuff"]:::func
+        B --> C["Apply GE\nStaminaDrain"]:::func
+        C --> D["WaitInputRelease"]:::task
+        C --> E["WaitAttributeChange\nStamina <= 0"]:::task
+        D -->|Released| F["Remove GEs\nEndAbility"]:::endpoint
+        E -->|Out of Stamina| F
+
+        classDef event fill:#b71c1c,stroke:#ef5350,color:#fff
+        classDef func fill:#4527a0,stroke:#7e57c2,color:#fff
+        classDef task fill:#0d47a1,stroke:#42a5f5,color:#fff
+        classDef endpoint fill:#1b5e20,stroke:#66bb6a,color:#fff
     ```
 
     **Variables to add:**

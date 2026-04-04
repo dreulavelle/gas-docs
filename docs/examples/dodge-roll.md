@@ -88,27 +88,27 @@ Create a new Blueprint class with **YourProjectGameplayAbility** as the parent. 
 ### Event Graph
 
 === "Blueprint"
-    ```
-    Event ActivateAbility
-        |
-        v
-    Commit Ability
-        |-- [Failed] -------> End Ability (Cancelled = true)
-        |
-        v [Success]
-    Play Montage and Wait (AM_DodgeRoll, Rate: 1.0)
-        |-- On Completed ---------> End Ability (Cancelled = false)
-        |-- On Blend Out ----------> End Ability (Cancelled = false)
-        |-- On Interrupted --------> End Ability (Cancelled = true)
-        +-- On Cancelled ----------> End Ability (Cancelled = true)
-    ```
 
-    **Step-by-step breakdown:**
+    !!! abstract "Event Graph"
 
-    1. **ActivateAbility** fires -- at this point, `State.Evading` and `State.Invulnerable` are already granted by Activation Owned Tags
-    2. **Commit Ability** checks cost and cooldown, deducts stamina, applies cooldown. If it fails (not enough stamina, still on cooldown), the ability ends immediately and the tags are removed
-    3. **Play Montage and Wait** plays `AM_DodgeRoll` with root motion. The character moves through space based on the animation
-    4. When the montage completes or is interrupted, **End Ability** is called. Activation Owned Tags (`State.Evading`, `State.Invulnerable`) are automatically removed
+        1. **ActivateAbility** fires -- at this point, `State.Evading` and `State.Invulnerable` are already granted by Activation Owned Tags
+        2. **CommitAbility** checks cost and cooldown, deducts stamina, applies cooldown. If it fails (not enough stamina, still on cooldown), the ability ends immediately and the tags are removed
+        3. **PlayMontageAndWait** plays `AM_DodgeRoll` with root motion. The character moves through space based on the animation
+        4. When the montage completes or is interrupted/cancelled: **EndAbility**. Activation Owned Tags (`State.Evading`, `State.Invulnerable`) are automatically removed
+
+    ```mermaid
+    flowchart LR
+        A["ActivateAbility"]:::event --> B["CommitAbility"]:::func
+        B -->|Failed| C["EndAbility\n(cancelled)"]:::endpoint
+        B -->|Success| D["PlayMontageAndWait\nAM_DodgeRoll"]:::task
+        D -->|Completed / BlendOut| E["EndAbility"]:::endpoint
+        D -->|Interrupted / Cancelled| E
+
+        classDef event fill:#5c1a1a,stroke:#ff6666,color:#fff
+        classDef func fill:#2a2a4a,stroke:#9b89f5,color:#fff
+        classDef task fill:#1a3a5c,stroke:#4a9eff,color:#fff
+        classDef endpoint fill:#1a4a2d,stroke:#6bcb3a,color:#fff
+    ```
 
 === "C++"
     ```cpp

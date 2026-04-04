@@ -115,41 +115,35 @@ Open the Blueprint and set these in the **Class Defaults** panel:
 Here's the ability logic. This runs when the ability activates (after cost and cooldown checks pass):
 
 === "Blueprint"
+
+    !!! abstract "Event Graph"
+
+        1. **ActivateAbility** fires when GAS activates the ability
+        2. Two [Ability Tasks](../gameplay-abilities/ability-tasks.md) run **concurrently**:
+
+            - **PlayMontageAndWait** plays `AM_MeleeAttack` and gives you delegates for completion, interruption, and cancellation
+            - **WaitGameplayEvent** listens for `Event.Montage.MeleeHit` -- sent by an **AnimNotify** at the exact frame the weapon connects
+
+        3. When the hit event fires: **MakeOutgoingGESpec** creates a spec from `GE_Damage_Melee`
+        4. **AssignSetByCallerMagnitude** sets `SetByCaller.Damage` to `25.0` (the damage number lives here)
+        5. **ApplyGESpecToTarget** applies the configured damage spec to the hit actor (target comes from the event payload)
+        6. When the montage completes or is interrupted/cancelled: **EndAbility**
+
+    ```mermaid
+    flowchart LR
+        A["ActivateAbility"]:::event --> B["PlayMontageAndWait\nAM_MeleeAttack"]:::task
+        A --> C["WaitGameplayEvent\nEvent.Montage.MeleeHit"]:::task
+        C -->|Hit Event| D["MakeOutgoingGESpec\nGE_Damage_Melee"]:::func
+        D --> E["SetByCaller\nDamage = 25"]:::func
+        E --> F["ApplyGESpec\nto Target"]:::func
+        B -->|Completed / BlendOut| G["EndAbility"]:::endpoint
+        B -->|Interrupted / Cancelled| G
+
+        classDef event fill:#5c1a1a,stroke:#ff6666,color:#fff
+        classDef func fill:#2a2a4a,stroke:#9b89f5,color:#fff
+        classDef task fill:#1a3a5c,stroke:#4a9eff,color:#fff
+        classDef endpoint fill:#1a4a2d,stroke:#6bcb3a,color:#fff
     ```
-    Event ActivateAbility
-        |
-        v
-    Play Montage and Wait (AM_MeleeAttack, Rate: 1.0)
-        |-- On Completed ----------> End Ability (Cancelled = false)
-        |-- On Interrupted ---------> End Ability (Cancelled = true)
-        |-- On Cancelled -----------> End Ability (Cancelled = true)
-        +-- On Blend Out -----------> (optional: End Ability)
-
-    Wait Gameplay Event (Tag: Event.Montage.MeleeHit)
-        |
-        v
-    Make Outgoing Gameplay Effect Spec (GE_Damage_Melee)
-        |
-        v
-    Assign Set By Caller Magnitude
-        |-- Spec Handle: (from above)
-        |-- Data Tag: SetByCaller.Damage
-        +-- Magnitude: 25.0
-        |
-        v
-    Apply Gameplay Effect Spec to Target
-        |-- Spec: (from above)
-        +-- Target: Event Data -> Target (from Wait Gameplay Event)
-    ```
-
-    **Step-by-step breakdown:**
-
-    1. **ActivateAbility** fires when GAS activates the ability
-    2. **Play Montage and Wait** -- an [Ability Task](../gameplay-abilities/ability-tasks.md) that plays `AM_MeleeAttack` and gives you delegates for completion, interruption, and cancellation
-    3. **Wait Gameplay Event** -- another Ability Task that listens for a gameplay event with tag `Event.Montage.MeleeHit`. This event is sent by an **AnimNotify** in your montage at the exact frame the weapon should deal damage
-    4. **Make Outgoing GE Spec** -- creates a spec from `GE_Damage_Melee`, ready to be configured
-    5. **Assign Set By Caller Magnitude** -- sets the `SetByCaller.Damage` value to 25.0 (this is where the damage number lives)
-    6. **Apply GE Spec to Target** -- applies the configured damage spec to whoever was hit. The target comes from the gameplay event's payload
 
 === "C++"
     ```cpp

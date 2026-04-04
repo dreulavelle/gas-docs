@@ -309,61 +309,65 @@ void UGA_PredictedMeleeAttack::EndAbility(
 
 Here's what happens frame-by-frame when a client activates this ability with 100ms network latency:
 
-```
-CLIENT (t=0ms)                          SERVER
-  |                                       |
-  | TryActivateAbility()                  |
-  | -> Generate PredictionKey #42         |
-  | -> Call ActivateAbility()             |
-  |    -> CommitAbility():                |
-  |       PREDICT: Stamina 100 -> 85     |
-  |       PREDICT: Cooldown tag applied   |
-  |    -> Play montage (predicted)        |
-  |                                       |
-  | Send activation request ----------->  |  (t=50ms, half RTT)
-  |                                       |
-  | [Client sees montage playing,         |
-  |  stamina at 85, on cooldown]          |
-  |                                       |  ServerTryActivateAbility()
-  |                                       |  -> Validate: can this activate?
-  |                                       |  -> CommitAbility():
-  |                                       |     AUTHORITY: Stamina 100 -> 85
-  |                                       |     AUTHORITY: Cooldown applied
-  |                                       |  -> Play montage (authority)
-  |                                       |
-  |  <----------- Confirm key #42        |  (t=100ms)
-  |                                       |
-  | OnRep: PredictionKey #42 confirmed   |
-  | -> Remove predicted GEs              |
-  | -> Server's replicated GEs take over  |
-  | [Seamless transition, player          |
-  |  noticed nothing]                     |
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C: t=0ms
+    C->>C: TryActivateAbility()
+    C->>C: Generate PredictionKey #42
+    C->>C: ActivateAbility()
+    C->>C: PREDICT: Stamina 100 -> 85
+    C->>C: PREDICT: Cooldown tag applied
+    C->>C: Play montage (predicted)
+
+    Note over C: Client sees montage,<br/>stamina at 85, on cooldown
+
+    C->>S: Activation request (t=50ms)
+
+    S->>S: ServerTryActivateAbility()
+    S->>S: Validate: can this activate?
+    S->>S: AUTHORITY: Stamina 100 -> 85
+    S->>S: AUTHORITY: Cooldown applied
+    S->>S: Play montage (authority)
+
+    S->>C: Confirm key #42 (t=100ms)
+
+    C->>C: OnRep: key #42 confirmed
+    C->>C: Remove predicted GEs
+    C->>C: Server replicated GEs take over
+
+    Note over C: Seamless transition,<br/>player noticed nothing
 ```
 
 ### What Happens on Rejection
 
-```
-CLIENT (t=0ms)                          SERVER
-  |                                       |
-  | TryActivateAbility()                  |
-  | -> PredictionKey #42                  |
-  | -> PREDICT: Stamina 100 -> 85        |
-  | -> PREDICT: Cooldown applied          |
-  | -> PREDICT: Montage plays             |
-  |                                       |
-  | Send activation request ----------->  |
-  |                                       |
-  |                                       |  ServerTryActivateAbility()
-  |                                       |  -> FAILS (stunned, silenced, etc.)
-  |                                       |
-  |  <----------- REJECT key #42         |
-  |                                       |
-  | ClientActivateAbilityFailed()         |
-  | -> ROLLBACK: Stamina 85 -> 100       |
-  | -> ROLLBACK: Cooldown tag removed     |
-  | -> ROLLBACK: Montage cancelled        |
-  | [Player sees a brief animation        |
-  |  that snaps back — "misprediction"]   |
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C: t=0ms
+    C->>C: TryActivateAbility()
+    C->>C: PredictionKey #42
+    C->>C: PREDICT: Stamina 100 -> 85
+    C->>C: PREDICT: Cooldown applied
+    C->>C: PREDICT: Montage plays
+
+    C->>S: Activation request
+
+    S->>S: ServerTryActivateAbility()
+    S->>S: FAILS (stunned, silenced, etc.)
+
+    S-->>C: REJECT key #42
+
+    C->>C: ClientActivateAbilityFailed()
+    C->>C: ROLLBACK: Stamina 85 -> 100
+    C->>C: ROLLBACK: Cooldown tag removed
+    C->>C: ROLLBACK: Montage cancelled
+
+    Note over C: Player sees brief animation<br/>that snaps back -- "misprediction"
 ```
 
 ---
@@ -451,43 +455,45 @@ To deliberately trigger a rollback:
 
 ## The Full Flow
 
-```
-[CLIENT]                                    [SERVER]
-   |                                           |
-   | Player presses attack                     |
-   | TryActivateAbility()                      |
-   | -> Generate FPredictionKey                |
-   | -> ActivateAbility()                      |
-   |    +-- CommitAbility() [PREDICTED]        |
-   |    |   +-- Cost GE applied (predicted)    |
-   |    |   +-- Cooldown GE applied (predicted)|
-   |    +-- PlayMontage (predicted)             |
-   |    +-- WaitGameplayEvent started           |
-   |                                           |
-   | --- RPC: ServerTryActivateAbility ------> |
-   |                                           | Validate activation
-   |                                           | CommitAbility() [AUTHORITY]
-   |                                           | PlayMontage [AUTHORITY]
-   |                                           |
-   | <---- Confirm / Reject ------------------ |
-   |                                           |
-   | [IF CONFIRMED]                            |
-   | OnRep catches up                          |
-   | Predicted GEs silently removed            |
-   | Server GEs take over via replication      |
-   |                                           |
-   | [IF REJECTED]                             |
-   | Rollback all predicted GEs                |
-   | Cancel predicted montage                  |
-   | Ability ends with bWasCancelled=true      |
-   |                                           |
-   | [LATER: AnimNotify fires]                 |
-   | OnDamageEventReceived()                   |
-   | -> Client: skip (not authority)           | -> Server: apply damage GE
-   |                                           |    to target
-   |                                           |
-   | [Montage completes]                       |
-   | EndAbility() on both sides                |
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    C->>C: Player presses attack
+    C->>C: TryActivateAbility()
+    C->>C: Generate FPredictionKey
+    C->>C: ActivateAbility()
+    C->>C: CommitAbility() [PREDICTED]
+    Note over C: Cost GE applied (predicted)<br/>Cooldown GE applied (predicted)
+    C->>C: PlayMontage (predicted)
+    C->>C: WaitGameplayEvent started
+
+    C->>S: RPC: ServerTryActivateAbility
+
+    S->>S: Validate activation
+    S->>S: CommitAbility() [AUTHORITY]
+    S->>S: PlayMontage [AUTHORITY]
+
+    alt Confirmed
+        S->>C: Confirm PredictionKey
+        C->>C: OnRep catches up
+        C->>C: Predicted GEs silently removed
+        C->>C: Server GEs take over via replication
+    else Rejected
+        S-->>C: Reject PredictionKey
+        C->>C: Rollback all predicted GEs
+        C->>C: Cancel predicted montage
+        C->>C: EndAbility (bWasCancelled=true)
+    end
+
+    Note over C,S: Later: AnimNotify fires
+    C->>C: OnDamageEventReceived() -- skip (not authority)
+    S->>S: OnDamageEventReceived() -- apply damage GE to target
+
+    Note over C,S: Montage completes
+    C->>C: EndAbility()
+    S->>S: EndAbility()
 ```
 
 ---

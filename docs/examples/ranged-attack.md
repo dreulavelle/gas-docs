@@ -92,46 +92,34 @@ Create `GA_RangedAttack` with **YourProjectGameplayAbility** as the parent.
 ### Event Graph
 
 === "Blueprint"
-    ```
-    Event ActivateAbility
-        |
-        v
-    Commit Ability
-        |-- [Failed] -------> End Ability (Cancelled = true)
-        |
-        v [Success]
-    Make Outgoing Gameplay Effect Spec (GE_Damage_Ranged)
-        |
-        v
-    Assign Set By Caller Magnitude
-        |-- Spec Handle: (from above)
-        |-- Data Tag: SetByCaller.Damage
-        +-- Magnitude: 30.0
-        |
-        v
-    Get Aim Direction (camera forward + spawn offset)
-        |
-        v
-    Spawn Actor from Class (BP_Projectile)
-        |-- Location: Character location + forward offset
-        |-- Rotation: Aim direction rotation
-        |
-        v
-    Set DamageEffectSpecHandle on spawned projectile
-        |
-        v
-    End Ability (Cancelled = false)
-    ```
 
-    **Step-by-step breakdown:**
+    !!! abstract "Event Graph"
 
-    1. **Commit Ability** -- checks mana cost and cooldown, applies both if successful
-    2. **Make Outgoing GE Spec** -- creates the damage spec with the caster's ASC context baked in. This is the critical step -- the spec remembers *who* created it
-    3. **Assign SetByCaller** -- sets the damage value (30.0) on the spec
-    4. **Get Aim Direction** -- get the camera's forward vector for aiming (not the character's facing)
-    5. **Spawn Actor** -- creates `BP_Projectile` at the character's position, aimed in the fire direction
-    6. **Set DamageEffectSpecHandle** -- passes the pre-built spec to the projectile. The spec carries the caster's context with it
-    7. **End Ability** -- the ability's job is done. The projectile handles damage on its own schedule
+        1. **ActivateAbility** fires
+        2. **CommitAbility** checks mana cost and cooldown, applies both if successful. If it fails, **EndAbility** immediately
+        3. **MakeOutgoingGESpec** creates the damage spec from `GE_Damage_Ranged` with the caster's ASC context baked in -- the spec remembers *who* created it
+        4. **AssignSetByCallerMagnitude** sets `SetByCaller.Damage` to `30.0` on the spec
+        5. **Get Aim Direction** from the camera's forward vector (not the character's facing)
+        6. **SpawnActor** creates `BP_Projectile` at the character's position, aimed in the fire direction
+        7. **Set DamageEffectSpecHandle** on the spawned projectile -- passes the pre-built spec carrying the caster's context
+        8. **EndAbility** -- the ability's job is done. The projectile handles damage on its own schedule
+
+    ```mermaid
+    flowchart LR
+        A["ActivateAbility"]:::event --> B["CommitAbility"]:::func
+        B -->|Failed| C["EndAbility\n(cancelled)"]:::endpoint
+        B -->|Success| D["MakeOutgoingGESpec\nGE_Damage_Ranged"]:::func
+        D --> E["SetByCaller\nDamage = 30"]:::func
+        E --> F["Get Aim\nDirection"]:::func
+        F --> G["SpawnActor\nBP_Projectile"]:::func
+        G --> H["Set DamageSpec\non Projectile"]:::func
+        H --> I["EndAbility"]:::endpoint
+
+        classDef event fill:#5c1a1a,stroke:#ff6666,color:#fff
+        classDef func fill:#2a2a4a,stroke:#9b89f5,color:#fff
+        classDef task fill:#1a3a5c,stroke:#4a9eff,color:#fff
+        classDef endpoint fill:#1a4a2d,stroke:#6bcb3a,color:#fff
+    ```
 
 === "C++"
     ```cpp

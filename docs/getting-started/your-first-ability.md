@@ -88,24 +88,32 @@ Create a new Blueprint class with **YourProjectGameplayAbility** as the parent. 
 Keep this dead simple — jump is a fire-and-forget action:
 
 === "Blueprint"
-    ```
-    Event ActivateAbility
-        │
-        ▼
-    Commit Ability ──► [Failed] ──► End Ability (Cancelled = true)
-        │
-        ▼ [Success]
-    Get Avatar Actor ──► Cast to Character ──► Jump()
-        │
-        ▼
-    End Ability (Cancelled = false)
+
+    !!! abstract "Event Graph"
+
+        1. **ActivateAbility** fires after GAS confirms the ability *can* activate (tag checks pass)
+        2. **CommitAbility** deducts the cost and applies the cooldown. If it fails (not enough stamina, still on cooldown), **EndAbility** immediately
+        3. **Get Avatar Actor -> Cast to Character -> Jump()** -- the actual jump, one function call
+        4. **EndAbility** -- clean up. Always call this on every path
+
+    ```mermaid
+    flowchart LR
+        A["ActivateAbility"]:::event --> B["CommitAbility"]:::func
+        B -->|Failed| C["EndAbility\n(cancelled)"]:::endpoint
+        B -->|Success| D["Get Avatar Actor\nCast to Character"]:::func
+        D --> E["Jump()"]:::func
+        E --> F["EndAbility"]:::endpoint
+
+        classDef event fill:#5c1a1a,stroke:#ff6666,color:#fff
+        classDef func fill:#2a2a4a,stroke:#9b89f5,color:#fff
+        classDef endpoint fill:#1a4a2d,stroke:#6bcb3a,color:#fff
     ```
 
 === "Step-by-Step"
     1. **ActivateAbility** fires after GAS confirms the ability *can* activate (tag checks pass)
     2. **Commit Ability** deducts the cost and applies the cooldown. If it fails (not enough stamina, still on cooldown), end immediately
-    3. **Get Avatar Actor → Cast to Character → Jump()** — the actual jump, one function call
-    4. **End Ability** — clean up. Always call this on every path
+    3. **Get Avatar Actor -> Cast to Character -> Jump()** -- the actual jump, one function call
+    4. **End Ability** -- clean up. Always call this on every path
 
 !!! info "Why EndAbility right after Jump?"
     For a basic jump, you don't need to wait for the character to land. `ACharacter::Jump()` handles the physics — the ability's job is just to gate and trigger it. A more advanced version could use the **WaitMovementModeChange** ability task to track airborne state, grant an `State.Airborne` tag, and end the ability on landing. See the [Jump example](../examples/jump.md) for that version.
