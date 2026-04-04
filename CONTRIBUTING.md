@@ -43,6 +43,7 @@ git clone https://github.com/YOUR_USERNAME/gas-docs.git
 cd gas-docs
 
 # Install Zensical (the site generator)
+# Docs: https://zensical.org/docs/get-started/
 uv pip install zensical
 ```
 
