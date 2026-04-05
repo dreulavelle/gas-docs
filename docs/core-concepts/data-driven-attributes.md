@@ -7,7 +7,7 @@ description: How to initialize and scale GAS attributes from DataTables, CurveTa
 
 You've defined your attributes in C++ — but hardcoding `InitHealth(100.f)` in the constructor doesn't scale. What about per-character-class stats? Per-level scaling? Designer-editable values without recompiling?
 
-This page covers three approaches to populating attributes from data, from simplest to most powerful. Every production game needs at least one of these — pick the one that matches your needs and grow from there.
+This page covers three approaches to populating attributes from data, starting with the recommended approach and progressing to more specialized options. Every production game needs at least one of these — pick the one that matches your needs and grow from there.
 
 ---
 
@@ -30,129 +30,7 @@ This page covers three approaches to populating attributes from data, from simpl
 
 ---
 
-## Approach A: DataTable + FAttributeMetaData
-
-The simplest way to get attribute values out of C++ and into an editable asset. You create a DataTable with the `FAttributeMetaData` row struct, fill in values, and the engine applies them at startup.
-
-### 1. Create the DataTable
-
-=== "Editor"
-
-    1. **Content Browser** > right-click > **Miscellaneous** > **Data Table**
-    2. When prompted for a Row Struct, select **`AttributeMetaData`** (search for it — it's under the GameplayAbilities plugin)
-    3. Name it something like `DT_DefaultAttributes`
-
-=== "C++"
-
-    You can also load an existing DataTable asset by soft reference:
-
-    ```cpp
-    UPROPERTY(EditDefaultsOnly, Category = "Attributes")
-    TSoftObjectPtr<UDataTable> DefaultAttributeTable;
-    ```
-
-### 2. Row Naming Convention
-
-Each row in the table corresponds to a single attribute. The row name **must** follow this format:
-
-```
-{AttributeSetClassName}.{AttributeName}
-```
-
-Where `AttributeSetClassName` is the class name **without the U prefix**. The engine uses `Property->GetOwnerVariant().GetName()` internally, which strips the `U`.
-
-| Attribute Set Class | Attribute | Row Name |
-|:---|:---|:---|
-| `UMyAttributeSet` | `Health` | `MyAttributeSet.Health` |
-| `UMyAttributeSet` | `MaxHealth` | `MyAttributeSet.MaxHealth` |
-| `UVitalAttributeSet` | `Stamina` | `VitalAttributeSet.Stamina` |
-
-### 3. FAttributeMetaData Fields
-
-The struct has five fields, but only one actually does anything meaningful:
-
-| Field | Type | Default | Actually Used? |
-|:---|:---|:---|:---|
-| `BaseValue` | `float` | 0.0 | **Yes** — this is the value that gets applied to the attribute |
-| `MinValue` | `float` | 0.0 | Stored but **not enforced** by the engine |
-| `MaxValue` | `float` | 1.0 | Stored but **not enforced** by the engine |
-| `DerivedAttributeInfo` | `FString` | `""` | **Not used** by the engine |
-| `bCanStack` | `bool` | `false` | **Not used** by the engine |
-
-!!! danger "MinValue and MaxValue do NOT clamp your attributes"
-    This trips up nearly everyone. The `MinValue` and `MaxValue` fields in `FAttributeMetaData` are metadata only — the engine **never** reads them to enforce clamping. If you need attributes to stay within bounds, implement that in `PreAttributeChange` and `PreAttributeBaseChange`. See [Attributes and Attribute Sets](attributes-and-attribute-sets.md#2-preattributechange) for the callback chain.
-
-### 4. Three Ways to Apply
-
-#### DefaultStartingData on the ASC (Blueprint)
-
-The easiest way — no C++ needed. Configure it directly in the Blueprint details panel of your character or any actor with an ASC:
-
-=== "Blueprint"
-
-    1. Select the **Ability System Component** in the details panel
-    2. Find the **Default Starting Data** array (under the **AttributeTest** category)
-    3. Add an entry:
-        - **Attributes**: your `UAttributeSet` subclass (e.g., `MyAttributeSet`)
-        - **Default Starting Table**: your `FAttributeMetaData` DataTable
-
-    This runs automatically during `OnRegister` — no code needed.
-
-=== "C++"
-
-    You can also populate `DefaultStartingData` in your ASC subclass constructor:
-
-    ```cpp
-    UMyAbilitySystemComponent::UMyAbilitySystemComponent()
-    {
-        FAttributeDefaults Defaults;
-        Defaults.Attributes = UMyAttributeSet::StaticClass();
-        // DataTable loaded via ConstructorHelpers or set in Blueprint
-        Defaults.DefaultStartingTable = MyDataTable;
-        DefaultStartingData.Add(Defaults);
-    }
-    ```
-
-#### InitStats on the ASC (C++)
-
-Call this from code when you need explicit control over timing:
-
-```cpp
-// Creates the attribute set (if it doesn't exist) and initializes from the table
-AbilitySystemComponent->InitStats(UMyAttributeSet::StaticClass(), MyDataTable);
-```
-
-This is a convenience wrapper that calls `GetOrCreateAttributeSubobject` and then `InitFromMetaDataTable` internally.
-
-#### InitFromMetaDataTable on the Attribute Set (C++)
-
-If you already have a reference to the attribute set instance, call it directly:
-
-```cpp
-UMyAttributeSet* AttributeSet = Cast<UMyAttributeSet>(
-    AbilitySystemComponent->GetAttributeSubobject(UMyAttributeSet::StaticClass()));
-
-if (AttributeSet)
-{
-    AttributeSet->InitFromMetaDataTable(MyDataTable);
-}
-```
-
-This iterates over every `FGameplayAttributeData` property on the set, looks up a matching row by name, and sets both `BaseValue` and `CurrentValue` to the table's `BaseValue`.
-
-### 5. Limitations
-
-- **Flat values only** — no level scaling, no curves
-- **MinValue/MaxValue not enforced** — they're purely informational
-- **Epic considers it "not well supported"** — the comment in the source is explicit
-- **No GAS pipeline integration** — values are set directly, bypassing effects, callbacks, and replication events
-- **No per-character variation** — unless you create a separate DataTable per character class
-
-For prototyping or games with simple, flat stats, this works fine. For anything with level scaling or per-class variation, use Approach B or C.
-
----
-
-## Approach B: Instant GE with Override Modifiers (Recommended)
+## Approach A: Instant GE with Override Modifiers (Recommended)
 
 This is what Lyra and most modern UE5 projects use. You create an Instant Gameplay Effect with Override modifiers that set each attribute's base value. Pair it with a CurveTable for per-level scaling, and you get a fully data-driven, designer-editable, replication-aware initialization system.
 
@@ -305,6 +183,128 @@ FGameplayEffectSpecHandle Spec =
 | Designer tooling | DataTable editor | Full GE editor + curves |
 | Re-initialization | Requires manual code | Re-apply with new level |
 | Per-character variation | Separate tables | Separate GEs or separate curves |
+
+---
+
+## Approach B: DataTable + FAttributeMetaData
+
+The simplest way to get attribute values out of C++ and into an editable asset. You create a DataTable with the `FAttributeMetaData` row struct, fill in values, and the engine applies them at startup.
+
+### 1. Create the DataTable
+
+=== "Editor"
+
+    1. **Content Browser** > right-click > **Miscellaneous** > **Data Table**
+    2. When prompted for a Row Struct, select **`AttributeMetaData`** (search for it — it's under the GameplayAbilities plugin)
+    3. Name it something like `DT_DefaultAttributes`
+
+=== "C++"
+
+    You can also load an existing DataTable asset by soft reference:
+
+    ```cpp
+    UPROPERTY(EditDefaultsOnly, Category = "Attributes")
+    TSoftObjectPtr<UDataTable> DefaultAttributeTable;
+    ```
+
+### 2. Row Naming Convention
+
+Each row in the table corresponds to a single attribute. The row name **must** follow this format:
+
+```
+{AttributeSetClassName}.{AttributeName}
+```
+
+Where `AttributeSetClassName` is the class name **without the U prefix**. The engine uses `Property->GetOwnerVariant().GetName()` internally, which strips the `U`.
+
+| Attribute Set Class | Attribute | Row Name |
+|:---|:---|:---|
+| `UMyAttributeSet` | `Health` | `MyAttributeSet.Health` |
+| `UMyAttributeSet` | `MaxHealth` | `MyAttributeSet.MaxHealth` |
+| `UVitalAttributeSet` | `Stamina` | `VitalAttributeSet.Stamina` |
+
+### 3. FAttributeMetaData Fields
+
+The struct has five fields, but only one actually does anything meaningful:
+
+| Field | Type | Default | Actually Used? |
+|:---|:---|:---|:---|
+| `BaseValue` | `float` | 0.0 | **Yes** — this is the value that gets applied to the attribute |
+| `MinValue` | `float` | 0.0 | Stored but **not enforced** by the engine |
+| `MaxValue` | `float` | 1.0 | Stored but **not enforced** by the engine |
+| `DerivedAttributeInfo` | `FString` | `""` | **Not used** by the engine |
+| `bCanStack` | `bool` | `false` | **Not used** by the engine |
+
+!!! danger "MinValue and MaxValue do NOT clamp your attributes"
+    This trips up nearly everyone. The `MinValue` and `MaxValue` fields in `FAttributeMetaData` are metadata only — the engine **never** reads them to enforce clamping. If you need attributes to stay within bounds, implement that in `PreAttributeChange` and `PreAttributeBaseChange`. See [Attributes and Attribute Sets](attributes-and-attribute-sets.md#2-preattributechange) for the callback chain.
+
+### 4. Three Ways to Apply
+
+#### DefaultStartingData on the ASC (Blueprint)
+
+The easiest way — no C++ needed. Configure it directly in the Blueprint details panel of your character or any actor with an ASC:
+
+=== "Blueprint"
+
+    1. Select the **Ability System Component** in the details panel
+    2. Find the **Default Starting Data** array (under the **AttributeTest** category)
+    3. Add an entry:
+        - **Attributes**: your `UAttributeSet` subclass (e.g., `MyAttributeSet`)
+        - **Default Starting Table**: your `FAttributeMetaData` DataTable
+
+    This runs automatically during `OnRegister` — no code needed.
+
+=== "C++"
+
+    You can also populate `DefaultStartingData` in your ASC subclass constructor:
+
+    ```cpp
+    UMyAbilitySystemComponent::UMyAbilitySystemComponent()
+    {
+        FAttributeDefaults Defaults;
+        Defaults.Attributes = UMyAttributeSet::StaticClass();
+        // DataTable loaded via ConstructorHelpers or set in Blueprint
+        Defaults.DefaultStartingTable = MyDataTable;
+        DefaultStartingData.Add(Defaults);
+    }
+    ```
+
+#### InitStats on the ASC (C++)
+
+Call this from code when you need explicit control over timing:
+
+```cpp
+// Creates the attribute set (if it doesn't exist) and initializes from the table
+AbilitySystemComponent->InitStats(UMyAttributeSet::StaticClass(), MyDataTable);
+```
+
+This is a convenience wrapper that calls `GetOrCreateAttributeSubobject` and then `InitFromMetaDataTable` internally.
+
+#### InitFromMetaDataTable on the Attribute Set (C++)
+
+If you already have a reference to the attribute set instance, call it directly:
+
+```cpp
+UMyAttributeSet* AttributeSet = Cast<UMyAttributeSet>(
+    AbilitySystemComponent->GetAttributeSubobject(UMyAttributeSet::StaticClass()));
+
+if (AttributeSet)
+{
+    AttributeSet->InitFromMetaDataTable(MyDataTable);
+}
+```
+
+This iterates over every `FGameplayAttributeData` property on the set, looks up a matching row by name, and sets both `BaseValue` and `CurrentValue` to the table's `BaseValue`.
+
+### 5. Limitations
+
+- **Flat values only** — no level scaling, no curves
+- **MinValue/MaxValue not enforced** — they're purely informational
+- **Epic considers it "not well supported"** — the comment in the source is explicit
+- **No GAS pipeline integration** — values are set directly, bypassing effects, callbacks, and replication events
+- **No per-character variation** — unless you create a separate DataTable per character class
+
+For prototyping or games with simple, flat stats, this works fine. For anything with level scaling or per-class variation, use Approach A or C.
 
 ---
 
