@@ -62,7 +62,7 @@ A short cooldown to prevent spam-jumping. While this effect is active, the coold
 | **Granted Tags** | `Cooldown.Movement.Jump` |
 
 !!! info "Where to find Granted Tags in the editor"
-    In UE 5.3+, tag granting moved from a top-level GE property to a **GE Component**. In your Gameplay Effect Blueprint, look for **Components → TargetTagsGameplayEffectComponent** (sometimes labeled **"Tags Granted to Target"** in the details panel). Add your `Cooldown.Movement.Jump` tag there.
+    In UE 5.3+, tag granting moved from a top-level GE property to a **GE Component**. In your Gameplay Effect Blueprint, look for **Components → Target Tags (Granted to Actor)** → **Add Tags** → **Add to Inherited**.
 
 When the 0.3-second duration expires, the effect is removed, the tag disappears, and the ability is available again. No timers, no manual cleanup.
 
@@ -85,7 +85,7 @@ Create a new Blueprint class with **YourProjectGameplayAbility** as the parent. 
 
 ### Event Graph
 
-Keep this dead simple — jump is a fire-and-forget action:
+The jump ability needs to handle two things: starting the jump and stopping it when the player releases the key. This gives you variable jump height (tap for short hop, hold for full jump).
 
 === "Blueprint"
 
@@ -93,30 +93,80 @@ Keep this dead simple — jump is a fire-and-forget action:
 
         1. **ActivateAbility** fires after GAS confirms the ability *can* activate (tag checks pass)
         2. **CommitAbility** deducts the cost and applies the cooldown. If it fails (not enough stamina, still on cooldown), **EndAbility** immediately
-        3. **Get Avatar Actor -> Cast to Character -> Jump()** -- the actual jump, one function call
-        4. **EndAbility** -- clean up. Always call this on every path
+        3. **Get Avatar Actor from Actor Info** -- returns the pawn/character this ability is running on
+        4. **Cast to Character** -- needed to access `Jump()` and `StopJumping()`. If cast fails, **EndAbility**
+        5. **Jump()** -- starts the jump. The character's movement component handles the physics from here
+        6. **WaitInputRelease** -- an [Ability Task](../gameplay-abilities/ability-tasks.md) that pauses until the player releases the jump key
+        7. **StopJumping()** on the character -- tells the movement component to stop applying jump force (enables variable jump height)
+        8. **EndAbility** -- clean up
 
     ```mermaid
     flowchart LR
         A["ActivateAbility"]:::event --> B["CommitAbility"]:::func
-        B -->|Failed| C["EndAbility\n(cancelled)"]:::endpoint
+        B -->|Failed| C["EndAbility"]:::endpoint
         B -->|Success| D["Get Avatar Actor\nCast to Character"]:::func
-        D --> E["Jump()"]:::func
-        E --> F["EndAbility"]:::endpoint
+        D -->|Cast Failed| C
+        D -->|Success| E["Jump()"]:::func
+        E --> F["WaitInputRelease"]:::task
+        F --> G["StopJumping()"]:::func
+        G --> H["EndAbility"]:::endpoint
 
         classDef event fill:#5c1a1a,stroke:#ff6666,color:#fff
         classDef func fill:#2a2a4a,stroke:#9b89f5,color:#fff
+        classDef task fill:#1a3a5c,stroke:#4a9eff,color:#fff
         classDef endpoint fill:#1a4a2d,stroke:#6bcb3a,color:#fff
     ```
 
-=== "Step-by-Step"
-    1. **ActivateAbility** fires after GAS confirms the ability *can* activate (tag checks pass)
-    2. **Commit Ability** deducts the cost and applies the cooldown. If it fails (not enough stamina, still on cooldown), end immediately
-    3. **Get Avatar Actor -> Cast to Character -> Jump()** -- the actual jump, one function call
-    4. **End Ability** -- clean up. Always call this on every path
+=== "C++"
+    This follows the same pattern as Epic's built-in `UGameplayAbility_CharacterJump`. Note: because we use the `WaitInputRelease` ability task, this requires `InstancedPerActor` instancing. Epic's built-in version uses `NonInstanced` and handles input release differently (via the `InputReleased` override) — see [Built-in Abilities](../gameplay-abilities/built-in-abilities.md) for that approach.
 
-!!! info "Why EndAbility right after Jump?"
-    For a basic jump, you don't need to wait for the character to land. `ACharacter::Jump()` handles the physics -- the ability's job is just to gate and trigger it. A more advanced version could use the **WaitMovementModeChange** [ability task](../gameplay-abilities/ability-tasks.md) to track airborne state, grant a `State.Airborne` tag, and end the ability on landing.
+    ```cpp
+    void UGA_Jump::ActivateAbility(
+        const FGameplayAbilitySpecHandle Handle,
+        const FGameplayAbilityActorInfo* ActorInfo,
+        const FGameplayAbilityActivationInfo ActivationInfo,
+        const FGameplayEventData* TriggerEventData)
+    {
+        if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
+        {
+            EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+            return;
+        }
+
+        ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
+        if (!Character)
+        {
+            EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+            return;
+        }
+
+        Character->Jump();
+
+        // Wait for input release to call StopJumping
+        UAbilityTask_WaitInputRelease* WaitRelease =
+            UAbilityTask_WaitInputRelease::WaitInputRelease(this);
+        WaitRelease->OnRelease.AddDynamic(this, &UGA_Jump::OnJumpReleased);
+        WaitRelease->ReadyForActivation();
+    }
+
+    void UGA_Jump::OnJumpReleased(float TimeHeld)
+    {
+        ACharacter* Character = Cast<ACharacter>(
+            GetAvatarActorFromActorInfo());
+        if (Character)
+        {
+            Character->StopJumping();
+        }
+
+        K2_EndAbility();
+    }
+    ```
+
+!!! tip "Why StopJumping?"
+    `ACharacter::Jump()` starts applying upward velocity. `StopJumping()` tells the movement component to stop — this is what gives you **variable jump height** (tap for a short hop, hold for a full jump). Without it, every jump is the same height regardless of how long you hold the button. This is the same pattern Epic's built-in `UGameplayAbility_CharacterJump` uses.
+
+!!! info "The Cast to Character"
+    `GetAvatarActorFromActorInfo()` returns the actor the ability is running on, but as an `AActor*`. We need `ACharacter*` to call `Jump()` and `StopJumping()`, so the cast is required. If your character base class has custom jump logic, cast to that class instead.
 
 !!! danger "Always End Ability"
     Every code path must call **End Ability**. If you forget, the ability stays "active" forever — blocking re-activation, holding its slot, and leaking resources. This is the single most common GAS bug.

@@ -15,15 +15,15 @@ InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 
 ## The Three Policies
 
-| Policy | Object Lifetime | State | Replication | Tasks | Recommended |
+| Policy | Object Lifetime | State | Replication | Tasks | Notes |
 |:---|:---|:---|:---|:---|:---|
-| `InstancedPerActor` | One instance per ASC, reused across activations | Yes — persists between activations | Yes (RPCs, replicated properties) | Yes | **Default choice** |
-| `InstancedPerExecution` | New instance each activation | Yes — per activation only | Not supported | Yes | Niche use cases |
-| `NonInstanced` | Operates on the CDO, never instanced | No | No (no RPCs, no replicated properties) | **No** | **Deprecated in 5.5** |
+| `InstancedPerActor` | One instance per ASC, reused across activations | Yes — persists between activations | Yes (RPCs, replicated properties) | Yes | Most common for complex abilities |
+| `InstancedPerExecution` | New instance each activation | Yes — per activation only | Not supported | Yes | Multiple simultaneous activations |
+| `NonInstanced` | Operates on the CDO, never instanced | No | No (no RPCs, no replicated properties) | **No** | Lightest weight, good for simple abilities |
 
-### InstancedPerActor (Recommended Default) { #instanced-per-actor }
+### InstancedPerActor { #instanced-per-actor }
 
-This is the policy Epic recommends and the one you should reach for unless you have a specific reason not to. One instance of the ability is created when the ability is granted to an ASC, and that same instance is reused every time the ability activates.
+The most commonly used policy. One instance of the ability is created when the ability is granted to an ASC, and that same instance is reused every time the ability activates. Use this when your ability needs member variables, ability tasks, or replication.
 
 **What you get:**
 
@@ -66,14 +66,16 @@ A brand new instance is created every time the ability activates. When the abili
 InstancedPerExecution is useful when you genuinely need multiple simultaneous instances of the same ability (rare) or when the conceptual cleanliness of a fresh state per activation outweighs the allocation cost. In most projects, InstancedPerActor handles these cases just fine with a state reset at the top of `ActivateAbility`.
 
 !!! note "Historical Default"
-    `InstancedPerExecution` was the original engine default in earlier UE versions. Many older tutorials and sample projects use it. If you are starting fresh, there is no reason to prefer it over `InstancedPerActor`.
+    `InstancedPerExecution` was the original engine default in earlier UE versions. Many older tutorials and sample projects use it.
 
-### NonInstanced (Deprecated) { #non-instanced }
+### NonInstanced { #non-instanced }
 
 With `NonInstanced`, the ability is never instantiated. All logic runs on the **Class Default Object** (CDO). Every activation, every actor, shares the same object.
 
-!!! warning "Deprecated in UE 5.5"
-    `NonInstanced` is marked `UE_DEPRECATED_FORGAME(5.5)` in the engine source. Epic recommends migrating to `InstancedPerActor`. It still compiles but you should avoid it for new work.
+This is the lightest-weight option — zero allocation per grant or activation. Epic's own `UGameplayAbility_CharacterJump` uses NonInstanced because jump is simple enough to not need instance state.
+
+!!! note "Deprecation notice"
+    `NonInstanced` is marked `UE_DEPRECATED_FORGAME(5.5)` in the engine source, signaling that Epic is moving away from it. However, it still compiles and works. For simple fire-and-forget abilities that don't need tasks or state, it remains a valid choice — just be aware it may be removed in a future engine version.
 
 **What you lose — almost everything:**
 
