@@ -66,8 +66,9 @@ You can read these pages in any order, but this sequence minimizes "wait, what's
 1. **[Ability System Component](ability-system-component.md)** — Start here. It's the hub that owns everything else, so understanding it first gives you context for the rest.
 2. **[Gameplay Tags](gameplay-tags.md)** — Tags are the language everything speaks. You'll see them referenced in every other page.
 3. **[Attributes and Attribute Sets](attributes-and-attribute-sets.md)** — Your stats. Effects modify these, so learn what they are before learning how to change them.
-4. **[Gameplay Effects](gameplay-effects-overview.md)** — The pipeline that modifies attributes, grants tags, and triggers cues.
-5. **[Gameplay Abilities](gameplay-abilities-overview.md)** — The actions your characters perform. They use effects, tags, and attributes.
-6. **[Gameplay Cues](gameplay-cues-overview.md)** — Visual and audio feedback. Depends on effects and tags.
+4. **[Data-Driven Attributes](data-driven-attributes.md)** — How to initialize and scale attributes from DataTables, CurveTables, and Gameplay Effects instead of hardcoding values.
+5. **[Gameplay Effects](gameplay-effects-overview.md)** — The pipeline that modifies attributes, grants tags, and triggers cues.
+6. **[Gameplay Abilities](gameplay-abilities-overview.md)** — The actions your characters perform. They use effects, tags, and attributes.
+7. **[Gameplay Cues](gameplay-cues-overview.md)** — Visual and audio feedback. Depends on effects and tags.
 
 After this section, the [Deep Dives](../gameplay-effects/index.md) go into exhaustive detail on Effects, Abilities, Cues, and Networking.

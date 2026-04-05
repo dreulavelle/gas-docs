@@ -272,6 +272,9 @@ Apply an Instant Gameplay Effect at `BeginPlay` that sets all starting values. T
 !!! tip "Recommendation"
     For prototyping, constructor defaults are fine. For production, use a DataTable or startup effect — they're easier to tune and allow per-character variation.
 
+!!! abstract "Full guide: Data-Driven Attributes"
+    For the complete walkthrough on data-driven attribute initialization — including DataTable setup, Instant GE with CurveTable scaling, FAttributeSetInitter for per-class stats, and common mistakes — see **[Data-Driven Attributes](data-driven-attributes.md)**.
+
 ## Multiple Attribute Sets
 
 You're not limited to one Attribute Set. You can split attributes across multiple sets:

@@ -444,5 +444,6 @@ ATTRIBUTE_ACCESSORS(UYourAttributeSet, ExperienceBonus)
 ## Related Pages
 
 - [Attributes and Attribute Sets](../core-concepts/attributes-and-attribute-sets.md) -- core concepts behind FGameplayAttributeData, the callback chain, and meta attributes
+- [Data-Driven Attributes](../core-concepts/data-driven-attributes.md) -- how to initialize these attributes from data (DataTables, CurveTables, per-level scaling) instead of hardcoding values
 - [Add an Attribute](../recipes/add-attribute.md) -- step-by-step recipe for adding a new attribute with replication boilerplate
 - [Starter Tags](starter-tags.md) -- companion tag preset designed to work alongside this attribute schema

@@ -110,6 +110,7 @@ nav:
     - Ability System Component: core-concepts/ability-system-component.md
     - Gameplay Tags: core-concepts/gameplay-tags.md
     - Attributes and Attribute Sets: core-concepts/attributes-and-attribute-sets.md
+    - Data-Driven Attributes: core-concepts/data-driven-attributes.md
     - Gameplay Effects Overview: core-concepts/gameplay-effects-overview.md
     - Gameplay Abilities Overview: core-concepts/gameplay-abilities-overview.md
     - Gameplay Cues Overview: core-concepts/gameplay-cues-overview.md
