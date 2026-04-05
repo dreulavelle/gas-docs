@@ -64,7 +64,7 @@ The cooldown effect uses GAS's built-in cooldown system. When an ability activat
 |:---|:---|
 | **Duration Policy** | Has Duration |
 | **Duration Magnitude** | Scalable Float: `1.0` (1 second) |
-| **GrantedTags** | `Cooldown.Ability.BasicAttack` |
+| **Granted Tags** | `Cooldown.Ability.BasicAttack` (via TargetTagsGameplayEffectComponent) |
 
 The magic is in the tag. Your ability will be configured to check for `Cooldown.Ability.BasicAttack` -- while this effect is active and that tag is present on the ASC, the ability can't activate. When the 1-second duration expires, the effect is removed, the tag is removed, and the ability is available again. No timers, no manual cleanup.
 

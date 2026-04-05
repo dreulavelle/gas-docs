@@ -55,7 +55,7 @@ The dodge roll only needs two effects -- a cost and a cooldown. There is no dama
 |:---|:---|
 | **Duration Policy** | Has Duration |
 | **Duration Magnitude** | Scalable Float: `0.5` (half a second) |
-| **GrantedTags** | `Cooldown.Evade` |
+| **Granted Tags** | `Cooldown.Evade` (via TargetTagsGameplayEffectComponent) |
 
 We use `Cooldown.Evade` rather than `Cooldown.Ability.DodgeRoll` because you might have multiple evasion abilities (dodge, dash, blink) that share a single cooldown. If you want independent cooldowns per evasion type, use more specific tags like `Cooldown.Evade.DodgeRoll`.
 

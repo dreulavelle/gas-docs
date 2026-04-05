@@ -53,7 +53,7 @@ A ranged projectile ability that demonstrates spawning actors from within an abi
 |:---|:---|
 | **Duration Policy** | Has Duration |
 | **Duration Magnitude** | Scalable Float: `1.5` (1.5 seconds) |
-| **GrantedTags** | `Cooldown.Ability.RangedAttack` |
+| **Granted Tags** | `Cooldown.Ability.RangedAttack` (via TargetTagsGameplayEffectComponent) |
 
 ### GE_Damage_Ranged
 
