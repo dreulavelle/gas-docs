@@ -630,4 +630,4 @@ If all five check out, your GAS foundation is ready.
 
 ## What's Next
 
-The foundation is in place. Time to build something with it. Head to [Your First Ability](your-first-ability.md) to create a melee attack that uses every piece of the system.
+The foundation is in place. Time to build something with it. Head to [Your First Ability](your-first-ability.md) to create a jump ability that ties together everything you've just set up.
