@@ -132,13 +132,11 @@ Abilities have an instancing policy that controls how many instances of the abil
 
 | Policy | Behavior | Recommendation |
 |---|---|---|
-| **NonInstanced** | No instance — the CDO is used directly | Avoid unless you have a specific perf reason |
-| **InstancedPerActor** | One instance per actor, reused across activations | **Recommended for most abilities** |
-| **InstancedPerExecution** | New instance every activation | Use for abilities that need concurrent executions |
+| **NonInstanced** | No instance — the CDO is used directly | Simple abilities that don't need state or tasks |
+| **InstancedPerActor** | One instance per actor, reused across activations | Abilities that need state, tasks, or replication |
+| **InstancedPerExecution** | New instance every activation | Abilities that need concurrent executions |
 
-**InstancedPerActor** is the sweet spot for most games. The ability is instantiated once when granted, reused every time it activates, and you can store state on it between activations (combo counters, charge counts). It's also the most straightforward to debug.
-
-NonInstanced runs on the Class Default Object and cannot have instance state — you can't store variables on it. InstancedPerExecution creates a new instance every time, which is useful for abilities that can run concurrently (e.g., a turret that can fire multiple tracking missiles simultaneously) but costs more memory and setup.
+Each has its place. **InstancedPerActor** supports the widest range of patterns (member variables, ability tasks, replication) and is the most common choice. **NonInstanced** is the lightest weight — Epic's built-in `UGameplayAbility_CharacterJump` uses it because jump is simple enough to not need instance state. **InstancedPerExecution** is for the rare case where the same ability runs multiple times simultaneously (e.g., a turret firing multiple tracking missiles).
 
 For the full tradeoff analysis, see [Instancing Policy](../gameplay-abilities/instancing-policy.md).
 

@@ -574,11 +574,11 @@ GAS offers three instancing policies:
 
 | Policy | Behavior | Use Case |
 |---|---|---|
-| `NonInstanced` | Shared CDO, no per-actor state | Stateless, fire-and-forget abilities |
-| `InstancedPerActor` | One instance per actor | Most abilities — can hold state, safe default |
-| `InstancedPerExecution` | New instance per activation | Projectile abilities, things that overlap |
+| `NonInstanced` | Shared CDO, no per-actor state | Simple, fire-and-forget abilities (Epic's built-in jump uses this) |
+| `InstancedPerActor` | One instance per actor | Abilities that need state, tasks, or replication |
+| `InstancedPerExecution` | New instance per activation | Abilities that can run multiple simultaneously |
 
-`InstancedPerActor` is the right default for almost every project. `NonInstanced` saves memory but prevents you from storing any state on the ability instance (no member variables, no latent tasks that reference `this`). It's an optimization you'd only reach for after profiling. See [Instancing Policy](../gameplay-abilities/instancing-policy.md) for the full deep dive.
+We set `InstancedPerActor` on the base class because it supports the widest range of ability patterns — member variables, ability tasks, and replication all require instancing. Individual abilities that don't need these features can override to `NonInstanced` for lighter weight. See [Instancing Policy](../gameplay-abilities/instancing-policy.md) for the full comparison.
 
 ### Why a Custom InputTag Property?
 
