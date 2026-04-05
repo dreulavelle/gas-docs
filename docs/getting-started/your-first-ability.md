@@ -59,7 +59,10 @@ A short cooldown to prevent spam-jumping. While this effect is active, the coold
 |:---|:---|
 | **Duration Policy** | Has Duration |
 | **Duration Magnitude** | Scalable Float: `0.3` (seconds) |
-| **GrantedTags** | `Cooldown.Movement.Jump` |
+| **Granted Tags** | `Cooldown.Movement.Jump` |
+
+!!! info "Where to find Granted Tags in the editor"
+    In UE 5.3+, tag granting moved from a top-level GE property to a **GE Component**. In your Gameplay Effect Blueprint, look for **Components → TargetTagsGameplayEffectComponent** (sometimes labeled **"Tags Granted to Target"** in the details panel). Add your `Cooldown.Movement.Jump` tag there.
 
 When the 0.3-second duration expires, the effect is removed, the tag disappears, and the ability is available again. No timers, no manual cleanup.
 
