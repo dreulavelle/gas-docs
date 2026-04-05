@@ -6,7 +6,7 @@ Complete, end-to-end ability implementations. Each example walks through the ful
 Every example is **standalone**. You can jump to any one without reading the others.
 
 !!! tip "Looking for a simpler starting point?"
-    The [Getting Started](../getting-started/index.md) section includes a [jump ability tutorial](../getting-started/your-first-ability.md) — the simplest possible GAS ability. Start there if you're new, then come back here for more complex examples.
+    The [Getting Started](../getting-started/index.md) section includes a [melee attack tutorial](../getting-started/your-first-ability.md) — a simplified first ability that covers the full GAS loop. Start there if you're new, then come back here for production-ready versions.
 
 ## The Examples
 
