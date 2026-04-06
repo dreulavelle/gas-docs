@@ -359,10 +359,13 @@ struct FAbilityInputAction
     UPROPERTY(EditAnywhere)
     TObjectPtr<UInputAction> InputAction;
 
-    UPROPERTY(EditAnywhere, Meta = (Categories = "InputTag"))
+    UPROPERTY(EditAnywhere)
     FGameplayTag InputTag;
 };
 ```
+
+!!! tip "Filtering the tag picker"
+    You can add `Meta = (Categories = "InputTag")` to the `UPROPERTY` to restrict the editor's tag picker to only show tags under a specific parent (e.g., `InputTag.*`). This prevents accidentally selecting unrelated tags like `State.Dead`. The filter is optional -- omit it if your project uses a different tag namespace for inputs.
 
 **Option A -- Array on the character:**
 
@@ -525,7 +528,7 @@ struct FAbilityInputAction
     UPROPERTY(EditAnywhere)
     TObjectPtr<UInputAction> InputAction;
 
-    UPROPERTY(EditAnywhere, Meta = (Categories = "InputTag"))
+    UPROPERTY(EditAnywhere)
     FGameplayTag InputTag;
 };
 
