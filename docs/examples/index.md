@@ -14,7 +14,9 @@ Every example is **standalone**. You can jump to any one without reading the oth
 
 | Example | What It Demonstrates |
 |:---|:---|
+| **[Jump](jump.md)** | Stamina cost, cooldown, variable jump height via WaitInputRelease, tag-based CC blocking. |
 | **[Sprint Toggle](sprint.md)** | Toggle/held ability, infinite-duration effects, periodic stamina drain, WaitInputRelease. |
+| **[Stamina Regen](stamina-regen.md)** | Pure GE + tag system -- passive regen with delay-after-use, Ongoing Tag Requirements, no ability code. |
 
 ### :material-circle:{ style="color: #ffa726" } Intermediate
 

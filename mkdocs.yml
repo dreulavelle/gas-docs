@@ -189,7 +189,9 @@ nav:
 
   - Examples:
     - examples/index.md
+    - Jump: examples/jump.md
     - Sprint Toggle: examples/sprint.md
+    - Stamina Regen: examples/stamina-regen.md
     - Dodge Roll: examples/dodge-roll.md
     - Melee Attack: examples/melee-attack.md
     - Ranged Attack: examples/ranged-attack.md
