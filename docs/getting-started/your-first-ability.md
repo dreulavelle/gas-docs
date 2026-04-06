@@ -289,10 +289,17 @@ Open your `IMC_Default` (or create one). Add a mapping:
 
 ### 3. Route Input to the ASC
 
-In your input binding setup, add an entry that maps `IA_PrimaryAttack` to the tag `InputTag.Combat.Primary`. When the input fires, your system finds all granted abilities whose InputTag matches and calls `TryActivateAbility`.
+Your character class needs C++ code that bridges Enhanced Input to the ASC. When `IA_PrimaryAttack` fires, the character tells the ASC to activate the ability bound to that input -- either by matching an integer InputID or by matching the `InputTag` you set in Class Defaults.
 
-!!! tip "Production input systems"
-    The exact wiring depends on your input binding approach. See [Input Binding](../gameplay-abilities/input-binding.md) for the full architecture -- most production projects use a data-driven InputAction-to-Tag mapping table rather than per-action handler functions.
+There are two approaches to this routing, and both require a `SetupPlayerInputComponent` override in C++:
+
+- **InputID** -- simpler, maps each input to an enum value. The ASC handles the rest.
+- **Tag-based routing** -- more flexible, maps each input to a gameplay tag. Scales to dynamic ability sets.
+
+The [Input Binding](../gameplay-abilities/input-binding.md) page walks through both approaches with complete working code. The [Bind Ability to Input](../recipes/bind-ability-to-input.md) recipe has a condensed checklist.
+
+!!! info "Why can't this be Blueprint-only?"
+    `SetupPlayerInputComponent` is a C++ virtual function on `ACharacter`. The binding loop that maps Enhanced Input actions to ASC calls lives there. Your abilities, effects, and gameplay logic can still be entirely Blueprint -- only this input bridge needs C++.
 
 ### 4. Grant the Ability
 
