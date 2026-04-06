@@ -582,7 +582,7 @@ We set `InstancedPerActor` on the base class because it supports the widest rang
 
 ### Why a Custom InputTag Property?
 
-The Enhanced Input system works with `FGameplayTag` to route input to abilities. By putting this tag directly on your base ability class, every Blueprint ability can set its input binding right in the class defaults — no extra mapping tables needed. We'll use this in [Your First Ability](your-first-ability.md).
+By putting an input tag on your base ability class, your input routing code can match input actions to abilities by tag -- every Blueprint ability sets its binding right in Class Defaults. This tag does not do anything on its own; it requires C++ routing code on your character that reads the tag and activates the matching ability. See [Input Binding](../gameplay-abilities/input-binding.md) for the full setup and [Your First Ability](your-first-ability.md) to see it in action.
 
 ## 7. Compile and Verify
 

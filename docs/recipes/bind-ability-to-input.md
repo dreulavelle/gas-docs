@@ -1,146 +1,102 @@
 ---
 title: "Recipe: Bind Ability to Input"
-description: Step-by-step procedure for wiring an Input Action to a Gameplay Ability via InputTag.
+description: Quick-reference checklist for wiring an Enhanced Input Action to a Gameplay Ability.
 ---
 
 # Recipe: Bind Ability to Input
 
-**Goal:** Press a button, activate an ability. Using the Enhanced Input + InputTag pattern.
+**Goal:** Press a button, activate an ability.
 
-**Prerequisites:** Enhanced Input plugin enabled. An ability to bind. See [Input Binding](../gameplay-abilities/input-binding.md) for the concepts.
+**Prerequisites:** Enhanced Input plugin enabled. A character with an ASC. An ability to bind. See [Input Binding](../gameplay-abilities/input-binding.md) for the full architecture and complete code examples.
 
 ---
 
-## Steps
+## Quick Version
 
-### 1. Create the Input Action (IA)
+There are two approaches to input binding in GAS. Pick the one that fits your project -- both are covered in detail on the [Input Binding](../gameplay-abilities/input-binding.md) page.
+
+| | **InputID** | **Tag-Based** |
+|:---|:---|:---|
+| Complexity | Lower | Higher |
+| Scalability | Fixed enum slots | Unlimited tags |
+| Ability task support | Automatic | Manual (`AbilitySpecInputPressed/Released`) |
+| Works well for | Fixed input layouts | Dynamic ability sets, loadouts |
+
+---
+
+## Steps (InputID Approach)
+
+### 1. Create the Input Action
 
 1. Content Browser > right-click > **Input > Input Action**
 2. Name it: `IA_Attack`
-3. Set **Value Type** to `bool` (for press/release) or `Axis1D`/`Axis2D` for analog
-4. Save
+3. Set **Value Type** to `Digital (Bool)`
 
-### 2. Add to Input Mapping Context (IMC)
+### 2. Add to Input Mapping Context
 
 1. Open your IMC (e.g., `IMC_Default`)
-2. Click **+** to add a mapping
-3. Set the **Input Action** to `IA_Attack`
-4. Assign a key (e.g., Left Mouse Button)
-5. Add modifiers/triggers as needed (e.g., **Pressed** trigger for single activation)
-6. Save
+2. Add a mapping: **Input Action** = `IA_Attack`, **Key** = Left Mouse Button
 
-### 3. Create the InputTag
+### 3. Define an Input Enum (C++)
 
-If it doesn't already exist, create the tag:
+If you haven't already, create an `EAbilityInput` enum with entries for each bindable slot (PrimaryAttack, Dodge, Jump, etc.). See [Input Binding -- Step 1](../gameplay-abilities/input-binding.md#input-id) for the full enum.
 
-```ini
-# DefaultGameplayTags.ini
-+GameplayTagList=(Tag="InputTag.Attack",DevComment="Primary attack input")
-```
+### 4. Map InputAction to InputID
 
-Or add it in **Project Settings > GameplayTags > Manage Gameplay Tags**.
+Add an entry to your character's `AbilityInputBindings` array (in Class Defaults or C++):
 
-### 4. Map InputAction to InputTag
+| Input Action | InputID |
+|:---|:---|
+| `IA_Attack` | PrimaryAttack |
 
-This step depends on your input binding implementation. The common approach uses a data asset or array that maps IA to tag:
+### 5. Wire SetupPlayerInputComponent (C++)
 
-=== "Data-Driven (Recommended)"
+Your character class needs a `SetupPlayerInputComponent` override that loops through the bindings and calls `AbilityLocalInputPressed` / `AbilityLocalInputReleased` on the ASC. See [Input Binding -- Steps 3-4](../gameplay-abilities/input-binding.md#input-id) for the complete code.
 
-    Create a data asset or DataTable entry:
+### 6. Grant the Ability with InputID
 
-    ```cpp
-    USTRUCT(BlueprintType)
-    struct FInputActionTagBinding
-    {
-        GENERATED_BODY()
-
-        UPROPERTY(EditAnywhere)
-        TObjectPtr<UInputAction> InputAction;
-
-        UPROPERTY(EditAnywhere, Meta = (Categories = "InputTag"))
-        FGameplayTag InputTag;
-    };
-    ```
-
-    In your input data:
-    ```
-    IA_Attack → InputTag.Attack
-    IA_Dodge  → InputTag.Dodge
-    IA_Jump   → InputTag.Jump
-    ```
-
-=== "In Code"
-
-    In your character's input setup:
-
-    ```cpp
-    void AMyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-    {
-        UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-
-        for (const FInputActionTagBinding& Binding : InputBindings)
-        {
-            EIC->BindAction(Binding.InputAction, ETriggerEvent::Triggered,
-                this, &AMyCharacter::OnAbilityInputPressed, Binding.InputTag);
-            EIC->BindAction(Binding.InputAction, ETriggerEvent::Completed,
-                this, &AMyCharacter::OnAbilityInputReleased, Binding.InputTag);
-        }
-    }
-
-    void AMyCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
-    {
-        ASC->AbilityLocalInputPressed(InputTag);
-    }
-
-    void AMyCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
-    {
-        ASC->AbilityLocalInputReleased(InputTag);
-    }
-    ```
-
-### 5. Set InputTag on the Ability
-
-Open your ability Blueprint (e.g., `GA_LightAttack`):
-
-1. In Class Defaults, find the **InputTag** property (or your project's equivalent)
-2. Set it to `InputTag.Attack`
-
-!!! note "Implementation varies"
-    The exact property name depends on your base ability class. Some projects use `AbilityInputAction`, `ActivationTag`, or a custom property. The concept is the same: the ability declares which input tag activates it.
-
-### 6. Grant the Ability
-
-Make sure the ability is granted to the character (see [Add an Ability](add-ability.md)). When granting, the InputTag is used to associate the ability spec with the input:
+When granting the ability, pass the `InputID` to the `FGameplayAbilitySpec` constructor:
 
 ```cpp
-FGameplayAbilitySpec Spec(AbilityClass, Level, INDEX_NONE, this);
-// If using the input tag approach, the ability's CDO InputTag
-// is read during activation matching
-ASC->GiveAbility(Spec);
+FGameplayAbilitySpec Spec(AbilityClass, 1, static_cast<int32>(EAbilityInput::PrimaryAttack), this);
+AbilitySystemComponent->GiveAbility(Spec);
 ```
 
 ### 7. Test
 
 1. PIE
-2. Press the bound key (Left Mouse Button)
-3. Verify the ability activates
-4. Release the key -- verify the ability handles release if needed (for hold abilities)
-5. Check `showdebug abilitysystem` to see the ability in the active/granted list
+2. Press the bound key
+3. Verify the ability activates (`showdebug abilitysystem`)
+4. Release the key -- verify held abilities respond to release
+5. Check Stamina/cooldown if the ability has cost/cooldown effects
 
 ---
 
 ## Checklist
 
-- [ ] Input Action created (IA\_)
-- [ ] Input Action added to Input Mapping Context
-- [ ] InputTag created (e.g., `InputTag.Attack`)
-- [ ] IA mapped to InputTag (data asset or code)
-- [ ] Ability's InputTag property set
-- [ ] Ability granted to character
+- [ ] Input Action created (`IA_`)
+- [ ] Input Action added to Input Mapping Context with a key
+- [ ] Input enum defined with an entry for this ability
+- [ ] InputAction mapped to InputID (character array or data asset)
+- [ ] `SetupPlayerInputComponent` wires the binding loop (C++)
+- [ ] Ability granted with the correct InputID
 - [ ] Tested in PIE
+
+---
+
+## Using Tag-Based Routing Instead?
+
+Follow the same first two steps (create IA, add to IMC), then:
+
+- Create an `InputTag` (e.g., `InputTag.Attack`)
+- Map the IA to the tag in your character's input config
+- Grant the ability with the tag added to `DynamicSpecSourceTags`
+- **Call `AbilitySpecInputPressed`/`Released`** in your routing callbacks -- without this, `WaitInputRelease` breaks silently
+
+See [Input Binding -- Tag-Based Routing](../gameplay-abilities/input-binding.md#tag-based) for the complete walkthrough and [The Critical Detail](../gameplay-abilities/input-binding.md#spec-input-pressed) for why the `AbilitySpecInputPressed` call matters.
 
 ## Related
 
-- [Input Binding](../gameplay-abilities/input-binding.md) -- concepts and architecture
+- [Input Binding](../gameplay-abilities/input-binding.md) -- full architecture, both approaches, complete code
 - [Add an Ability](add-ability.md) -- creating and granting abilities
 - [Net Execution Policies](../networking/net-execution-policies.md) -- how input interacts with networking
